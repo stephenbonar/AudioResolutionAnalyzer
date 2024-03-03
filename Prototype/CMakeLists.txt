@@ -1,4 +1,4 @@
-# CMakeLists.txt - CMakeLists for building the main program.
+# CMakeLists.txt - CMakeLists for building the prototype program.
 #
 # Copyright (C) 2024 Stephen Bonar
 #
@@ -17,23 +17,17 @@
 # Define the directories that contain the header files the tests include.
 set(INCLUDES 
     ${PROJECT_SOURCE_DIR}/LibCppBinData/LibCppBinData
-    ${PROJECT_SOURCE_DIR}/LibCppCmdLine/LibCppCmdLine
-    ${PROJECT_BINARY_DIR}/AudioResolutionAnalyzer)
-
-# Configure the program version info from the main cmake project into the
-# Version.h header, which is build into the program binary. This is done so
-# we centrally update the program name, version, and copyright from cmake.
-configure_file(Version.h.in Version.h)
+    ${PROJECT_SOURCE_DIR}/LibCppCmdLine/LibCppCmdLine)
 
 # Define the libraries the tests need to link against.
 set(LIBRARIES LibCppBinData LibCppCmdLine)
 
 # Define the executable targets.
-add_executable(analyzeaudio ConsoleMain.cpp Program.cpp WaveFile.cpp)
+add_executable(analyzeaudioproto Prototype.cpp)
 
 # Include all the directories that contain headers that we need that are not
 # in the current directory, otherwise the compiler won't find them
-target_include_directories(analyzeaudio PUBLIC ${INCLUDES})
+target_include_directories(analyzeaudioproto PUBLIC ${INCLUDES})
 
 # Configure the tunebeepertests target to link to the necessary libraries
-target_link_libraries(analyzeaudio ${LIBRARIES})
+target_link_libraries(analyzeaudioproto ${LIBRARIES})

@@ -509,7 +509,7 @@ int ProcessWaveFile(WaveProcessingInfo& info)
 
 int main(int argc, char** argv)
 {
-    std::cout << "Bit Depth Converter Prototype" << std::endl;
+    std::cout << "AudioResolutionAnalyzer Prototype" << std::endl;
     std::cout << "Copyright (C) 2024 Stephen Bonar" << std::endl << std::endl;
 
     WaveProcessingInfo info;

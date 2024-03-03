@@ -19,5 +19,5 @@
 #define PROGRAM_RELEASE "@PROJECT_RELEASE@"
 #define PROGRAM_BUILD_TYPE "@CMAKE_BUILD_TYPE@"
 
-#define VERSION_MAJOR @ConvertBitDepth_VERSION_MAJOR@
-#define VERSION_MINOR @ConvertBitDepth_VERSION_MINOR@
+#define VERSION_MAJOR @AudioResolutionAnalyzer_VERSION_MAJOR@
+#define VERSION_MINOR @AudioResolutionAnalyzer_VERSION_MINOR@

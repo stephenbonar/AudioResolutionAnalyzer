@@ -94,7 +94,7 @@ int Program::Run()
 void Program::DefineParams()
 {
     CmdLine::ProgParam::Definition progDef;
-    progDef.name = "convbitdepth";
+    progDef.name = "analyzeaudio";
     progDef.description = "converts WAV files to different bit depths";
     progParam = std::make_shared<CmdLine::ProgParam>(progDef);
 

@@ -1,0 +1,6 @@
+[submodule "LibCppCmdLine"]
+	path = LibCppCmdLine
+	url = https://github.com/stephenbonar/LibCppCmdLine
+[submodule "LibCppBinData"]
+	path = LibCppBinData
+	url = https://github.com/stephenbonar/LibCppBinData

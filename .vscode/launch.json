@@ -1,0 +1,33 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(lldb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/Build/ConvertBitDepth/convbitdepth",
+            "args": ["--32", "Speaks24.wav", "Speaks24to32.wav"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/Build/ConvertBitDepth/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
+            "name": "(Windows) Launch",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/ConvertBitDepth/Debug/convbitdepth.exe",
+            "args": ["--24", "Speaks.wav", "Speaks24.wav"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/ConvertBitDepth/Debug/",
+            "environment": [],
+            "console": "integratedTerminal"
+            //"console": "externalTerminal"
+        }
+
+    ]
+}

@@ -37,6 +37,9 @@ private:
     std::shared_ptr<CmdLine::PosParam> inputFileParam;
     std::shared_ptr<CmdLine::PosParam> outputFileParam;
     std::shared_ptr<CmdLine::Option> analyzeOption;
+    std::shared_ptr<CmdLine::ValueOption> methodOption;
+    std::shared_ptr<CmdLine::OptionParam> directCopyParam;
+    std::shared_ptr<CmdLine::OptionParam> linearScalingParam;
     std::shared_ptr<CmdLine::Option> to8BitOption;
     std::shared_ptr<CmdLine::Option> to16BitOption;
     std::shared_ptr<CmdLine::Option> to24BitOption;

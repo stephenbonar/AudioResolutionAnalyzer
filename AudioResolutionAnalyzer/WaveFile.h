@@ -74,24 +74,65 @@ private:
 
     template <typename OriginalField>
     bool ConvertNextSample(BitDepth depth, ConversionMethod method)
-    {   
-        switch (depth)
+    {
+        switch (method)
         {
-            case BitDepth::UInt8:
-                return ScaleSampleLinear<OriginalField, BinData::UInt8Field>();
-            case BitDepth::Int16:
-                return ScaleSampleLinear<OriginalField, BinData::Int16Field>();
-            case BitDepth::Int24:
-                return ScaleSampleLinear<OriginalField, BinData::Int24Field>();
-            case BitDepth::Int32:
-                return ScaleSampleLinear<OriginalField, BinData::Int32Field>();
+            case ConversionMethod::DirectCopy:
+                switch (depth)
+                {
+                    case BitDepth::UInt8:
+                        return DirectCopyNextSample<OriginalField, BinData::UInt8Field>();
+                    case BitDepth::Int16:
+                        return DirectCopyNextSample<OriginalField, BinData::Int16Field>();
+                    case BitDepth::Int24:
+                        return DirectCopyNextSample<OriginalField, BinData::Int24Field>();
+                    case BitDepth::Int32:
+                        return DirectCopyNextSample<OriginalField, BinData::Int32Field>();
+                    default:
+                        return false;
+                }
+            case ConversionMethod::LinearScaling:
+                switch (depth)
+                {
+                    case BitDepth::UInt8:
+                        return ScaleNextSampleLinear<OriginalField, BinData::UInt8Field>();
+                    case BitDepth::Int16:
+                        return ScaleNextSampleLinear<OriginalField, BinData::Int16Field>();
+                    case BitDepth::Int24:
+                        return ScaleNextSampleLinear<OriginalField, BinData::Int24Field>();
+                    case BitDepth::Int32:
+                        return ScaleNextSampleLinear<OriginalField, BinData::Int32Field>();
+                    default:
+                        return false;
+                }
             default:
-                return false;
+                return false;  
+        }   
+    }
+
+    template<typename OriginalField, typename NewField>
+    bool DirectCopyNextSample()
+    {
+        // Read the original sample to prepare it for conversion.
+        OriginalField sample{ 0 };
+        readStream->Read(&sample);
+
+        NewField newSample{ 0 };
+        if (newSample.Size() < sample.Size())
+        {
+            std::cerr << 
+                "Cannot do a direct copy conversion to smaller bit depth";
+            std::cerr << std::endl;
+            return false;
         }
+        newSample.SetValue(sample.Value());
+
+        writeStream->Write(&newSample);
+        return true;
     }
 
     template <typename OriginalField, typename NewField>
-    bool ScaleSampleLinear()
+    bool ScaleNextSampleLinear()
     {
         // Read the original sample to prepare it for conversion.
         OriginalField sample{ 0 };

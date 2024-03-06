@@ -27,18 +27,18 @@ enum ConversionMethod
     /// reason this method is included is to prove that converting from one bit
     /// depth to another is not a simple copy of the same numeric value into an
     /// integer of a different size.
-    CopyByValue,
+    DirectCopy,
 
-    /// @brief Scales the sample value with an 8-bit left shift.
+    /// @brief Scales the sample value up or down with bit shifts.
     ///
-    /// Scales the sample value up by shifting the bits left by 8 before
-    /// storing the value in the larger sized integer. This essentially
-    /// maintains a 1:1 ratio when the value is transferred to the larger
-    /// integer. This results in a valid conversion.
-    Upscaling,
+    /// Scales the sample value up or down by shifting the bits left or right, 
+    /// storing the value in the larger or smaller sized integer. This 
+    /// essentially maintains a 1:1 ratio when the value is transferred to the 
+    /// larger or smaller integer. This results in a valid conversion.
+    LinearScaling,
 
     /// @brief 
-    UpscalingWithInterpolation
+    ScalingLinearInterpolation
 };
 
 #endif

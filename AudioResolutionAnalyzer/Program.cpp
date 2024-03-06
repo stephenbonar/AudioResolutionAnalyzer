@@ -46,36 +46,28 @@ int Program::Run()
     }
     inputFile.Open();
 
+    ConversionMethod method = ConversionMethod::LinearScaling;
+    if (directCopyParam->IsSpecified())
+        method = ConversionMethod::DirectCopy;
+
     if (to8BitOption->IsSpecified())
     {
-        inputFile.Convert(
-            outputFileParam->Value(), 
-            BitDepth::UInt8,
-            ConversionMethod::Upscaling);
+        inputFile.Convert(outputFileParam->Value(), BitDepth::UInt8, method);
         return 0;
     }
     else if (to16BitOption->IsSpecified())
     {
-        inputFile.Convert(
-            outputFileParam->Value(), 
-            BitDepth::Int16,
-            ConversionMethod::Upscaling);
+        inputFile.Convert(outputFileParam->Value(), BitDepth::Int16, method);
         return 0;
     }
     else if (to24BitOption->IsSpecified())
     {
-        inputFile.Convert(
-            outputFileParam->Value(), 
-            BitDepth::Int24,
-            ConversionMethod::Upscaling);
+        inputFile.Convert(outputFileParam->Value(), BitDepth::Int24, method);
         return 0;
     }
     else if (to32BitOption->IsSpecified())
     {
-        inputFile.Convert(
-            outputFileParam->Value(),
-            BitDepth::Int32,
-            ConversionMethod::Upscaling);
+        inputFile.Convert(outputFileParam->Value(), BitDepth::Int32, method);
         return 0;
     }
     else if (analyzeOption->IsSpecified())
@@ -116,6 +108,27 @@ void Program::DefineParams()
     analyzeDef.description = "determines if the specified file was upscaled";
     analyzeOption = std::make_shared<CmdLine::Option>(analyzeDef);
 
+    CmdLine::OptionParam::Definition directCopyDef;
+    directCopyDef.name = "directcopy";
+    directCopyDef.description = "uses direct value copy for conversion";
+    directCopyDef.isMandatory = false;
+    directCopyParam = std::make_shared<CmdLine::OptionParam>(directCopyDef);
+
+    CmdLine::OptionParam::Definition linearScalingDef;
+    linearScalingDef.name = "linearscale";
+    linearScalingDef.description = "uses linear scaling for conversion";
+    linearScalingDef.isMandatory = false;
+    linearScalingParam = std::make_shared<CmdLine::OptionParam>(
+        linearScalingDef);
+
+    CmdLine::ValueOption::Definition methodDef;
+    methodDef.shortName = 'm';
+    methodDef.longName = "method";
+    methodDef.description = "specifies the conversion method to use";
+    methodOption = std::make_shared<CmdLine::ValueOption>(methodDef);
+    methodOption->Add(directCopyParam.get());
+    methodOption->Add(linearScalingParam.get());
+
     CmdLine::Option::Definition to8BitDef;
     to8BitDef.shortName = 'e';
     to8BitDef.longName = "8";
@@ -147,6 +160,7 @@ bool Program::ParseArguments()
     parser.Add(inputFileParam.get());
     parser.Add(outputFileParam.get());
     parser.Add(analyzeOption.get());
+    parser.Add(methodOption.get());
     parser.Add(to8BitOption.get());
     parser.Add(to16BitOption.get());
     parser.Add(to24BitOption.get());

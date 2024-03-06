@@ -8,10 +8,10 @@
             "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/Build/ConvertBitDepth/convbitdepth",
-            "args": ["--32", "Speaks24.wav", "Speaks24to32.wav"],
+            "program": "${workspaceFolder}/build/AudioResolutionAnalyzer/analyzeaudio",
+            "args": ["-m", "directcopy", "--24", "In.wav", "In24DC.wav"],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/Build/ConvertBitDepth/",
+            "cwd": "${workspaceFolder}/build/AudioResolutionAnalyzer/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb"
@@ -20,10 +20,10 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/ConvertBitDepth/Debug/convbitdepth.exe",
+            "program": "${workspaceFolder}/build/AudioResolutionAnalyzer/Debug/analyzeaudio.exe",
             "args": ["--24", "Speaks.wav", "Speaks24.wav"],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/ConvertBitDepth/Debug/",
+            "cwd": "${workspaceFolder}/build/AudioResolutionAnalyzer/Debug/",
             "environment": [],
             "console": "integratedTerminal"
             //"console": "externalTerminal"

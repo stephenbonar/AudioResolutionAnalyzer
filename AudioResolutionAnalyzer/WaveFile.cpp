@@ -20,7 +20,7 @@ WaveFile::WaveFile(std::string fileName)
 {
     this->fileName = fileName;
     this->isUpscaleConversion = false;
-    readStream = std::make_shared<BinData::StandardFileStream>(fileName);
+    readStream = std::make_shared<BinData::StdFileStream>(fileName);
 }
 
 void WaveFile::Open()
@@ -146,8 +146,7 @@ void WaveFile::Convert(
     ConversionMethod method)
 {
     // Open the file stream for writing so we can write the converted data. 
-    writeStream = std::make_shared<BinData::StandardFileStream>(
-        outputFileName);
+    writeStream = std::make_shared<BinData::StdFileStream>(outputFileName);
     if (!writeStream->IsOpen())
         writeStream->Open(BinData::FileMode::Write);
 
@@ -191,6 +190,22 @@ void WaveFile::Convert(
         switch (format.bitsPerSample.Value())
         {
             case 8:
+                success = ConvertNext<BinData::UInt8Field>(method, depth);
+                break;
+            case 16:
+                success = ConvertNext<BinData::Int16Field>(method, depth);
+                break;
+            case 24:
+                success = ConvertNext<BinData::Int24Field>(method, depth);
+                break;
+            case 32:
+                success = ConvertNext<BinData::Int32Field>(method, depth);
+                break;
+        }
+        /*
+        switch (format.bitsPerSample.Value())
+        {
+            case 8:
                 success = ConvertNextSample<BinData::UInt8Field>(
                     depth, method);
                 break;
@@ -206,7 +221,7 @@ void WaveFile::Convert(
                 success = ConvertNextSample<BinData::Int32Field>(
                     depth, method);
                 break;
-        }
+        }*/
 
         if (!success)
             break;

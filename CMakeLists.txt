@@ -15,7 +15,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.12)
-project(AudioResolutionAnalyzer VERSION 0.57.0 LANGUAGES CXX)
+project(AudioResolutionAnalyzer VERSION 0.58.0 LANGUAGES CXX)
 
 # Although the project command can natively pass the name and version into
 # the program through the configure_file command, there is no native RELEASE

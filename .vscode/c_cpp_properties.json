@@ -3,7 +3,10 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/AudioResolutionAnalyzer",
+                "${workspaceFolder}/LibCppCmdLine/LibCppCmdLine",
+                "${workspaceFolder}/LibCppBinData/LibCppBinData",
+                "${workspaceFolder}/build/AudioResolutionAnalyzer"
             ],
             "defines": [],
             "macFrameworkPath": [

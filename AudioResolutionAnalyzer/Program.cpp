@@ -191,7 +191,7 @@ bool Program::ParseArguments()
 
 void Program::PrintProgramInfo()
 {
-    std::cout << PROGRAM_NAME << " " << VERSION_MAJOR << "." << VERSION_MINOR;
+    std::cout << PROGRAM_NAME << " v" << VERSION_MAJOR << "." << VERSION_MINOR;
     std::cout << " " << PROGRAM_RELEASE << std::endl;
     std::cout << PROGRAM_COPYRIGHT << std::endl;
     std::cout << std::endl;

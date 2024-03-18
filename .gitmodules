@@ -4,3 +4,9 @@
 [submodule "LibCppBinData"]
 	path = LibCppBinData
 	url = https://github.com/stephenbonar/LibCppBinData
+[submodule "flac"]
+	path = flac
+	url = https://github.com/xiph/flac
+[submodule "LibCppLogging"]
+	path = LibCppLogging
+	url = https://github.com/stephenbonar/LibCppLogging

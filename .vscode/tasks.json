@@ -6,7 +6,8 @@
             "command": "build",
             "targets": [
                 "analyzeaudio",
-                "bindatatests"
+                "bindatatests",
+                "loggingtests"
             ],
             "group": {
                 "kind": "build",

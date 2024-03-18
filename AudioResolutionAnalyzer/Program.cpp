@@ -50,22 +50,22 @@ int Program::Run()
     if (directCopyParam->IsSpecified())
         method = ConversionMethod::DirectCopy;
 
-    if (to8BitOption->IsSpecified())
+    if (to8BitParam->IsSpecified())
     {
         inputFile.Convert(outputFileParam->Value(), BitDepth::UInt8, method);
         return 0;
     }
-    else if (to16BitOption->IsSpecified())
+    else if (to16BitParam->IsSpecified())
     {
         inputFile.Convert(outputFileParam->Value(), BitDepth::Int16, method);
         return 0;
     }
-    else if (to24BitOption->IsSpecified())
+    else if (to24BitParam->IsSpecified())
     {
         inputFile.Convert(outputFileParam->Value(), BitDepth::Int24, method);
         return 0;
     }
-    else if (to32BitOption->IsSpecified())
+    else if (to32BitParam->IsSpecified())
     {
         inputFile.Convert(outputFileParam->Value(), BitDepth::Int32, method);
         return 0;
@@ -129,29 +129,35 @@ void Program::DefineParams()
     methodOption->Add(directCopyParam.get());
     methodOption->Add(linearScalingParam.get());
 
-    CmdLine::Option::Definition to8BitDef;
-    to8BitDef.shortName = 'e';
-    to8BitDef.longName = "8";
+    CmdLine::OptionParam::Definition to8BitDef;
+    to8BitDef.name = "8-bit";
     to8BitDef.description = "converts the file to 8-bit audio";
-    to8BitOption = std::make_shared<CmdLine::Option>(to8BitDef);
+    to8BitParam = std::make_shared<CmdLine::OptionParam>(to8BitDef);
 
-    CmdLine::Option::Definition to16BitDef;
-    to16BitDef.shortName = 's';
-    to16BitDef.longName = "16";
+    CmdLine::OptionParam::Definition to16BitDef;
+    to16BitDef.name = "16-bit";
     to16BitDef.description = "converts the file to 16-bit audio";
-    to16BitOption = std::make_shared<CmdLine::Option>(to16BitDef);
+    to16BitParam = std::make_shared<CmdLine::OptionParam>(to16BitDef);
 
-    CmdLine::Option::Definition to24BitDef;
-    to24BitDef.shortName = 't';
-    to24BitDef.longName = "24";
+    CmdLine::OptionParam::Definition to24BitDef;
+    to24BitDef.name = "24-bit";
     to24BitDef.description = "converts the file to 24-bit audio";
-    to24BitOption = std::make_shared<CmdLine::Option>(to24BitDef);
+    to24BitParam = std::make_shared<CmdLine::OptionParam>(to24BitDef);
 
-    CmdLine::Option::Definition to32BitDef;
-    to32BitDef.shortName = 'r';
-    to32BitDef.longName = "32";
+    CmdLine::OptionParam::Definition to32BitDef;
+    to32BitDef.name = "32-bit";
     to32BitDef.description = "converts the file to 32-bit audio";
-    to32BitOption = std::make_shared<CmdLine::Option>(to32BitDef);
+    to32BitParam = std::make_shared<CmdLine::OptionParam>(to32BitDef);
+
+    CmdLine::ValueOption::Definition convertDef;
+    convertDef.shortName = 'c';
+    convertDef.longName = "convert";
+    convertDef.description = "converts the file to the specified resolution";
+    convertOption = std::make_shared<CmdLine::ValueOption>(convertDef);
+    convertOption->Add(to8BitParam.get());
+    convertOption->Add(to16BitParam.get());
+    convertOption->Add(to24BitParam.get());
+    convertOption->Add(to32BitParam.get());
 }
 
 bool Program::ParseArguments()
@@ -160,11 +166,8 @@ bool Program::ParseArguments()
     parser.Add(inputFileParam.get());
     parser.Add(outputFileParam.get());
     parser.Add(analyzeOption.get());
+    parser.Add(convertOption.get());
     parser.Add(methodOption.get());
-    parser.Add(to8BitOption.get());
-    parser.Add(to16BitOption.get());
-    parser.Add(to24BitOption.get());
-    parser.Add(to32BitOption.get());
     CmdLine::Parser::Status status = parser.Parse();
 
     if (status == CmdLine::Parser::Status::Failure)

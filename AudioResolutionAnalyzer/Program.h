@@ -40,10 +40,11 @@ private:
     std::shared_ptr<CmdLine::ValueOption> methodOption;
     std::shared_ptr<CmdLine::OptionParam> directCopyParam;
     std::shared_ptr<CmdLine::OptionParam> linearScalingParam;
-    std::shared_ptr<CmdLine::Option> to8BitOption;
-    std::shared_ptr<CmdLine::Option> to16BitOption;
-    std::shared_ptr<CmdLine::Option> to24BitOption;
-    std::shared_ptr<CmdLine::Option> to32BitOption;
+    std::shared_ptr<CmdLine::ValueOption> convertOption;
+    std::shared_ptr<CmdLine::OptionParam> to8BitParam;
+    std::shared_ptr<CmdLine::OptionParam> to16BitParam;
+    std::shared_ptr<CmdLine::OptionParam> to24BitParam;
+    std::shared_ptr<CmdLine::OptionParam> to32BitParam;
 
     void DefineParams();
 

@@ -15,7 +15,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.12)
-project(AudioResolutionAnalyzer VERSION 0.58.0 LANGUAGES CXX)
+project(AudioResolutionAnalyzer VERSION 0.59.0 LANGUAGES CXX)
 
 # Although the project command can natively pass the name and version into
 # the program through the configure_file command, there is no native RELEASE
@@ -27,14 +27,25 @@ set(PROJECT_COPYRIGHT "Copyright (C) 2024 Stephen Bonar")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Tell the FLAC library not to build with support for unnecessary dependencies,
+# such as OGG support and man pages.
+set(WITH_OGG OFF)
+set(INSTALL_MANPAGES OFF)
+
 # Add the LibCppBinData library to the project.
 add_subdirectory(LibCppBinData)
 
 # Add the LibCppCmdLine library to the project.
 add_subdirectory(LibCppCmdLine)
 
+# Add the LibCppLogging library to the project.
+add_subdirectory(LibCppLogging)
+
 # Add the AudioResolutionAnalyzer program to the project.
 add_subdirectory(AudioResolutionAnalyzer)
 
 # Add the prototype version of AudioResolutionAnalyzer to the project.
 add_subdirectory(Prototype)
+
+# Add the FLAC library to the project.
+add_subdirectory(flac)

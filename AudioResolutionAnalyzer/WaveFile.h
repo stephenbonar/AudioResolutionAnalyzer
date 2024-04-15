@@ -42,6 +42,8 @@ public:
 
     WaveFormat GetFormat() { return format; }
 
+    std::string FileName() { return fileName; }
+
     void Analyze();
 
     void Convert(

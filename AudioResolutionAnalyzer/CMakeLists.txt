@@ -18,6 +18,7 @@
 set(INCLUDES 
     ${PROJECT_SOURCE_DIR}/LibCppBinData/LibCppBinData
     ${PROJECT_SOURCE_DIR}/LibCppCmdLine/LibCppCmdLine
+    ${PROJECT_SOURCE_DIR}/LibCppLogging/LibCppLogging
     ${PROJECT_SOURCE_DIR}/flac/include/FLAC
     ${PROJECT_SOURCE_DIR}/flac/include/FLAC++
     ${PROJECT_BINARY_DIR}/AudioResolutionAnalyzer)
@@ -28,7 +29,7 @@ set(INCLUDES
 configure_file(Version.h.in Version.h)
 
 # Define the libraries the tests need to link against.
-set(LIBRARIES LibCppBinData LibCppCmdLine FLAC++)
+set(LIBRARIES LibCppBinData LibCppCmdLine LibCppLogging FLAC++)
 
 # Define the executable targets.
 add_executable(analyzeaudio ConsoleMain.cpp Program.cpp WaveFile.cpp)

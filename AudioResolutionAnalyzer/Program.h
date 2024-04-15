@@ -19,11 +19,14 @@
 
 #include <vector>
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 #include <memory>
 #include "CmdLine.h"
 #include "WaveFile.h"
 #include "BitDepth.h"
 #include "ConversionMethod.h"
+#include "Logging.h"
 
 class Program
 {
@@ -45,12 +48,21 @@ private:
     std::shared_ptr<CmdLine::OptionParam> to16BitParam;
     std::shared_ptr<CmdLine::OptionParam> to24BitParam;
     std::shared_ptr<CmdLine::OptionParam> to32BitParam;
+    std::shared_ptr<CmdLine::Option> logOption;
+    std::shared_ptr<Logging::StandardOutput> standardOutput;
+    std::shared_ptr<Logging::StandardError> standardError;
+    std::shared_ptr<Logging::LogFile> logFile;
+    Logging::Logger logger;
 
     void DefineParams();
 
     bool ParseArguments();
 
     void PrintProgramInfo();
+
+    void PrintSectionHeader(std::string text);
+
+    void PrintField(std::string fieldName, std::string value);
 
     int PrintWaveInfo(WaveFile& file);
 

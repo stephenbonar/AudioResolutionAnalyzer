@@ -23,6 +23,11 @@ Program::Program(int argc, char** argv)
         arguments.push_back(std::string(argv[i]));
 
     DefineParams();
+
+    standardOutput = std::make_shared<Logging::StandardOutput>();
+    standardError = std::make_shared<Logging::StandardError>();
+    logger.Add(standardOutput.get());
+    logger.Add(standardError.get());
 }
 
 int Program::Run()
@@ -32,6 +37,12 @@ int Program::Run()
     if (!ParseArguments())
         return 1;
 
+    if (logOption->IsSpecified())
+    {
+        logFile = std::make_shared<Logging::LogFile>();
+        logger.Add(logFile.get());
+    }
+
     if (inputFileParam->Value() == "debug")
     {
         Debug();
@@ -39,9 +50,17 @@ int Program::Run()
     }
     
     WaveFile inputFile{ inputFileParam->Value() };
-    if (!inputFile.Exists())
+    if (inputFile.Exists())
     {
-        std::cerr << "ERROR: " << inputFileParam->Value() << " does not exist!" << std::endl;
+        PrintSectionHeader("File");
+        PrintField("Filename", inputFile.FileName());
+        logger.Write("");
+    }
+    else
+    {
+        std::stringstream error;
+        error << inputFileParam->Value() << " does not exist!";
+        logger.Write(error.str(), Logging::LogLevel::Error);
         return 1;
     }
     inputFile.Open();
@@ -158,6 +177,12 @@ void Program::DefineParams()
     convertOption->Add(to16BitParam.get());
     convertOption->Add(to24BitParam.get());
     convertOption->Add(to32BitParam.get());
+
+    CmdLine::Option::Definition logDef;
+    logDef.shortName = 'l';
+    logDef.longName = "log";
+    logDef.description = "Writes messages to a log file, Log.txt";
+    logOption = std::make_shared<CmdLine::Option>(logDef);
 }
 
 bool Program::ParseArguments()
@@ -168,22 +193,25 @@ bool Program::ParseArguments()
     parser.Add(analyzeOption.get());
     parser.Add(convertOption.get());
     parser.Add(methodOption.get());
+    parser.Add(logOption.get());
     CmdLine::Parser::Status status = parser.Parse();
 
     if (status == CmdLine::Parser::Status::Failure)
     {
-        std::cerr << parser.GenerateUsage() << std::endl;
-        std::cerr << "Invalid command line arguments specified!" << std::endl;
+        logger.Write(parser.GenerateUsage());
+        logger.Write(
+            "Invalid command line arguments specified!", 
+            Logging::LogLevel::Error);
         return false;
     }  
     else if (parser.BuiltInHelpOptionIsSpecified())
     {
-        std::cout << parser.GenerateHelp() << std::endl;
+        logger.Write(parser.GenerateHelp());
         return false;
     }
     else if (!parser.AllMandatoryParamsSpecified())
     {
-        std::cout << parser.GenerateUsage() << std::endl;
+        logger.Write(parser.GenerateUsage());
         return false;
     }
     else
@@ -194,48 +222,62 @@ bool Program::ParseArguments()
 
 void Program::PrintProgramInfo()
 {
-    std::cout << PROGRAM_NAME << " v" << VERSION_MAJOR << "." << VERSION_MINOR;
-    std::cout << " " << PROGRAM_RELEASE << std::endl;
-    std::cout << PROGRAM_COPYRIGHT << std::endl;
-    std::cout << std::endl;
+    std::stringstream version;
+    version 
+        << PROGRAM_NAME << " v" << VERSION_MAJOR << "." << VERSION_MINOR
+        << " " << PROGRAM_RELEASE;
+
+    logger.Write(version.str());
+    logger.Write(PROGRAM_COPYRIGHT);
+    logger.Write("");
+}
+
+void Program::PrintSectionHeader(std::string text)
+{
+    logger.Write(text);
+    logger.Write("----------------------------------------");
+}
+
+void Program::PrintField(std::string fieldName, std::string value)
+{
+    std::stringstream field;
+    field << std::setw(20) << std::left << fieldName << ": " << value;
+    logger.Write(field.str());
 }
 
 int Program::PrintWaveInfo(WaveFile& file)
 {
     RiffChunkHeader header = file.GetChunkHeader();
-    std::cout << "RIFF Chunk Header" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
-    std::cout << "Chunk ID     : " << header.id << std::endl;
-    std::cout << "Chunk Size   : " << header.size << std::endl;
-    std::cout << "File Type    : " << header.type << std::endl;
-    std::cout << std::endl;
+    PrintSectionHeader("RIFF Chunk Header");
+    PrintField("Chunk ID", header.id.ToString());
+    PrintField("Chunk Size", header.size.ToString());
+    PrintField("File Type", header.type.ToString());
+    logger.Write("");
 
     WaveFormat format = file.GetFormat();
-    std::cout << "Format Info" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
-    std::cout << "Audio Format : " << format.audioFormat << std::endl;
-    std::cout << "Channels     : " << format.channels << std::endl;
-    std::cout << "Sample Rate  : " << format.sampleRate << std::endl;
-    std::cout << "Byte Rate    : " << format.byteRate << std::endl;
-    std::cout << "Block Align  : " << format.blockAlign << std::endl;
-    std::cout << "Bits / Sample: " << format.bitsPerSample << std::endl;
-    std::cout << std::endl;
+    PrintSectionHeader("Format Info");
+    PrintField("Audio Format", format.audioFormat.ToString());
+    PrintField("Channels", format.channels.ToString());
+    PrintField("Sample Rate", format.sampleRate.ToString());
+    PrintField("Byte Rate", format.byteRate.ToString());
+    PrintField("Block Align", format.blockAlign.ToString());
+    PrintField("Bits / Sample", format.bitsPerSample.ToString());
+    logger.Write("");
 
     return 0;
 }
 
 void Program::PrintAnalysisResults(WaveFile& file)
 {
-    std::cout << "Analysis Results" << std::endl;
-    std::cout << "----------------------------------------" << std::endl;
-
+    PrintSectionHeader("Analysis Results");
+    
     if (file.IsUpscaleConversion())
     {
-        std::cout << "File appears to be an upscale conversion" << std::endl;
+        logger.Write("File appears to be an upscale conversion");
     }
     else
     {
-        std::cout << "File appears to be a natural bit-depth" << std::endl;
+        logger.Write("File appears to be a natural bit-depth");
     }
 }
 

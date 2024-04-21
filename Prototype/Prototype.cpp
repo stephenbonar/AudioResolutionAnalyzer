@@ -520,10 +520,10 @@ int main(int argc, char** argv)
     }
 
     auto fileReadStream = 
-        std::make_shared<BinData::StandardFileStream>(
+        std::make_shared<BinData::StdFileStream>(
             info.params.inputFileParam->Value());
     auto fileWriteStream =
-        std::make_shared<BinData::StandardFileStream>(
+        std::make_shared<BinData::StdFileStream>(
             info.params.outputFileParam->Value());
     fileReadStream->Open(BinData::FileMode::Read);
     fileWriteStream->Open(BinData::FileMode::Write);

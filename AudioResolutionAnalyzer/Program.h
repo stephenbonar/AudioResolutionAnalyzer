@@ -27,10 +27,18 @@
 #include "BitDepth.h"
 #include "ConversionMethod.h"
 #include "Logging.h"
+#include "MediaFile.h"
+#include "FlacFile.h"
 
 class Program
 {
 public:
+    static constexpr int ExitStatusSuccess{ 0 };
+    static constexpr int ExitStatusInvalidArgsError{ 1 };
+    static constexpr int ExitStatusInputFileError{ 2 };
+    static constexpr int ExitStatusUnsupportedFile{ 3 };
+    static constexpr int ExitStatusNotImplemented{ 4 };
+
     Program(int argc, char** argv);
 
     int Run();
@@ -41,6 +49,7 @@ private:
     std::shared_ptr<CmdLine::PosParam> outputFileParam;
     std::shared_ptr<CmdLine::Option> analyzeOption;
     std::shared_ptr<CmdLine::ValueOption> methodOption;
+    std::shared_ptr<CmdLine::Option> debugOption;
     std::shared_ptr<CmdLine::OptionParam> directCopyParam;
     std::shared_ptr<CmdLine::OptionParam> linearScalingParam;
     std::shared_ptr<CmdLine::ValueOption> convertOption;
@@ -49,10 +58,11 @@ private:
     std::shared_ptr<CmdLine::OptionParam> to24BitParam;
     std::shared_ptr<CmdLine::OptionParam> to32BitParam;
     std::shared_ptr<CmdLine::Option> logOption;
+    std::shared_ptr<CmdLine::Option> dumpOption;
     std::shared_ptr<Logging::StandardOutput> standardOutput;
     std::shared_ptr<Logging::StandardError> standardError;
     std::shared_ptr<Logging::LogFile> logFile;
-    Logging::Logger logger;
+    std::shared_ptr<Logging::Logger> logger;
 
     void DefineParams();
 
@@ -62,13 +72,22 @@ private:
 
     void PrintSectionHeader(std::string text);
 
-    void PrintField(std::string fieldName, std::string value);
+    void PrintField(
+        std::string fieldName, 
+        std::string value, 
+        Logging::LogLevel level = Logging::LogLevel::Info);
 
-    int PrintWaveInfo(WaveFile& file);
+    int PrintMediaInfo(MediaFile* file);
 
-    void PrintAnalysisResults(WaveFile& file);
+    int PrintWaveInfo(WaveFile* file);
 
-    void Debug();
+    int PrintFlacInfo(FlacFile* file);
+
+    void PrintAnalysisResults(MediaFile* file);
+
+    std::shared_ptr<MediaFile> OpenFile(std::string fileName);
 };
+
+MediaFileType GetType(std::string fileName);
 
 #endif

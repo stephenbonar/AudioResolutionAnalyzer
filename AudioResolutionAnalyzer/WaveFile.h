@@ -18,6 +18,7 @@
 #define WAVE_FILE_H
 
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <memory>
 #include <filesystem>
@@ -28,30 +29,34 @@
 #include "BitDepth.h"
 #include "ConversionMethod.h"
 #include "SampleConverter.h"
+#include "MediaFile.h"
+#include "Logging.h"
+#include "SampleDumper.h"
 
-class WaveFile
+class WaveFile : public MediaFile
 {
 public:
-    WaveFile(std::string fileName);
+    static constexpr int WaveFormatPcm{ 0x1 };
+    static constexpr int WaveFormatExtensible{ 0xFFFE };
+
+    WaveFile(std::string fileName, std::shared_ptr<Logging::Logger> logger);
 
     void Open();
 
-    bool Exists() { return std::filesystem::exists(fileName); }
+    RiffChunkHeader ChunkHeader() const { return chunkHeader; }
 
-    RiffChunkHeader GetChunkHeader() { return chunkHeader; }
+    WaveFormat Format() const { return format; }
 
-    WaveFormat GetFormat() { return format; }
+    std::string FileName() const { return fileName; }
 
-    std::string FileName() { return fileName; }
-
-    void Analyze();
+    void Analyze(bool dumpSamples);
 
     void Convert(
         std::string outputFileName, 
         BitDepth depth, 
         ConversionMethod method);
 
-    bool IsUpscaleConversion() { return isUpscaleConversion; }
+    bool IsUpscaleConversion() const { return isUpscaleConversion; }
 private:
     bool isUpscaleConversion;
     std::string fileName;
@@ -62,6 +67,8 @@ private:
     std::vector<std::shared_ptr<BinData::Field>> otherFields;
     std::shared_ptr<BinData::StdFileStream> readStream;
     std::shared_ptr<BinData::StdFileStream> writeStream;
+    std::shared_ptr<Logging::Logger> logger;
+    std::shared_ptr<SampleDumper> sampleDumper;
 
     RiffChunkHeader ReadChunkHeader();
 
@@ -103,11 +110,16 @@ private:
     long CalculateNewDataSize(BitDepth depth, long numberOfSamples);
 
     template <typename T>
-    void AnalyzeNextSample()
+    void AnalyzeNextSample(bool dumpSamples)
     {
         T sample{ 0 };
         readStream->Read(&sample);
 
+        if (dumpSamples)
+        {
+            sampleDumper->Dump(&sample);
+        }
+        
         // Perform a bitwise and against the bitmask 0xFF to select the bits in
         // the least significant byte. If even one is of the least significant
         // bytes is non-zero, the file is not likely to be an upscale

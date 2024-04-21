@@ -11,16 +11,32 @@
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissionsand
+// See the License for the specific language governing permissions and
 // limitations under the License.
 
 #include "WaveFile.h"
 
-WaveFile::WaveFile(std::string fileName)
+WaveFile::WaveFile(
+    std::string fileName, 
+    std::shared_ptr<Logging::Logger> logger)
 {
     this->fileName = fileName;
+    this->logger = logger;
     this->isUpscaleConversion = false;
     readStream = std::make_shared<BinData::StdFileStream>(fileName);
+    sampleDumper = std::make_shared<SampleDumper>(fileName);
+
+    /*
+    std::stringstream pathStream;
+    std::filesystem::path path = std::filesystem::path{ fileName };
+    pathStream << path.stem().string() << "_samples.txt";
+    sampleDumper = std::make_shared<Logging::Logger>();
+    sampleDump = std::make_shared<Logging::LogFile>(pathStream.str());
+    Logging::ChannelSettings dumpSettings = sampleDump->Settings();
+    dumpSettings.includeTimestamp = false;
+    dumpSettings.includeLogLevel = false;
+    sampleDump->SetSettings(dumpSettings);
+    sampleDumper->Add(sampleDump.get());*/
 }
 
 void WaveFile::Open()
@@ -37,7 +53,14 @@ void WaveFile::Open()
         if (subChunkHeader.id.ToString() == "fmt ")
         {
             formatHeader = subChunkHeader;
-            format = ReadWaveFormat();
+            try
+            {
+                format = ReadWaveFormat();
+            }
+            catch (const MediaFormatError& error)
+            {
+                throw;
+            } 
         }
         else if (subChunkHeader.id.ToString() == "data")
         {
@@ -82,16 +105,23 @@ RiffSubChunkHeader WaveFile::ReadSubChunkHeader()
 WaveFormat WaveFile::ReadWaveFormat()
 {
     WaveFormat format;
+
     readStream->Read(&format.audioFormat);
+    if (format.audioFormat.Value() == WaveFormatExtensible)
+        throw MediaFormatError{ "Extensible WAVE format not yet supported" };
+    else if (format.audioFormat.Value() != WaveFormatPcm)
+        throw MediaFormatError{ "Non-PCM wave formats not supported" };
+
     readStream->Read(&format.channels);
     readStream->Read(&format.sampleRate);
     readStream->Read(&format.byteRate);
     readStream->Read(&format.blockAlign);
     readStream->Read(&format.bitsPerSample);
+
     return format;
 }
 
-void WaveFile::Analyze()
+void WaveFile::Analyze(bool dumpSamples)
 {
     unsigned long bytesRemaining = dataHeader.size.Value();
 
@@ -123,16 +153,16 @@ void WaveFile::Analyze()
         switch (format.bitsPerSample.Value())
         {
             case 8:
-                AnalyzeNextSample<BinData::Int8Field>();
+                AnalyzeNextSample<BinData::UInt8Field>(dumpSamples);
                 break;
             case 16:
-                AnalyzeNextSample<BinData::Int16Field>();
+                AnalyzeNextSample<BinData::Int16Field>(dumpSamples);
                 break;
             case 24:
-                AnalyzeNextSample<BinData::Int24Field>();
+                AnalyzeNextSample<BinData::Int24Field>(dumpSamples);
                 break;
             case 32:
-                AnalyzeNextSample<BinData::Int32Field>();
+                AnalyzeNextSample<BinData::Int32Field>(dumpSamples);
                 break;
         }
         

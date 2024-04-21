@@ -23,6 +23,14 @@ set(INCLUDES
     ${PROJECT_SOURCE_DIR}/flac/include/FLAC++
     ${PROJECT_BINARY_DIR}/AudioResolutionAnalyzer)
 
+# Define the source files that make up the main program.
+set(SOURCES
+    ConsoleMain.cpp 
+    Program.cpp
+    WaveFile.cpp
+    FlacFile.cpp
+    SampleDumper.cpp)
+
 # Configure the program version info from the main cmake project into the
 # Version.h header, which is build into the program binary. This is done so
 # we centrally update the program name, version, and copyright from cmake.
@@ -32,7 +40,7 @@ configure_file(Version.h.in Version.h)
 set(LIBRARIES LibCppBinData LibCppCmdLine LibCppLogging FLAC++)
 
 # Define the executable targets.
-add_executable(analyzeaudio ConsoleMain.cpp Program.cpp WaveFile.cpp)
+add_executable(analyzeaudio ${SOURCES})
 
 # Include all the directories that contain headers that we need that are not
 # in the current directory, otherwise the compiler won't find them

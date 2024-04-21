@@ -1,4 +1,4 @@
-// WaveFormat.h - Declares the WaveFormat struct.
+// SampleDumper.h - Declares the SampleDumper class.
 //
 // Copyright (C) 2024 Stephen Bonar
 //
@@ -14,19 +14,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef WAVE_FORMAT_H
-#define WAVE_FORMAT_H
+#ifndef SAMPLE_DUMPER_H
+#define SAMPLE_DUMPER_H
 
+#include <string>
+#include <sstream>
+#include <memory>
+#include "Logging.h"
 #include "BinData.h"
 
-struct WaveFormat
+class SampleDumper
 {
-    BinData::UInt16Field audioFormat{ 0 };
-    BinData::UInt16Field channels{ 0 };
-    BinData::UInt32Field sampleRate{ 0 };
-    BinData::UInt32Field byteRate{ 0 };
-    BinData::UInt16Field blockAlign{ 0 };
-    BinData::UInt16Field bitsPerSample{ 0 };
+public:
+    SampleDumper(std::string fileName);
+
+    void Dump(BinData::Field* sample)
+    {
+        dumpLogger->Write(sample->ToString(BinData::Format::Bin));
+    }
+private:
+    std::unique_ptr<Logging::LogFile> dumpFile;
+    std::unique_ptr<Logging::Logger> dumpLogger;
 };
 
 #endif

@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/AudioResolutionAnalyzer/analyzeaudio",
-            "args": ["-m", "directcopy", "--24", "In.wav", "In24DC.wav"],
+            "args": ["jump.flac"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build/AudioResolutionAnalyzer/",
             "environment": [],

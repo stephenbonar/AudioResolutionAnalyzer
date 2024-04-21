@@ -26,8 +26,13 @@ Program::Program(int argc, char** argv)
 
     standardOutput = std::make_shared<Logging::StandardOutput>();
     standardError = std::make_shared<Logging::StandardError>();
-    logger.Add(standardOutput.get());
-    logger.Add(standardError.get());
+    logFile = std::make_shared<Logging::LogFile>();
+
+    // Standard output and error are included in the logger by default, but
+    // the log file will only be included later if the -l option is specified.
+    logger = std::make_shared<Logging::Logger>();
+    logger->Add(standardOutput.get());
+    logger->Add(standardError.get());
 }
 
 int Program::Run()
@@ -35,35 +40,24 @@ int Program::Run()
     PrintProgramInfo();
 
     if (!ParseArguments())
-        return 1;
+        return ExitStatusInvalidArgsError;
 
     if (logOption->IsSpecified())
     {
-        logFile = std::make_shared<Logging::LogFile>();
-        logger.Add(logFile.get());
+        logger->Add(logFile.get());
     }
 
-    if (inputFileParam->Value() == "debug")
+    if (debugOption->IsSpecified())
     {
-        Debug();
-        return 0;
+        Logging::ChannelSettings outputSettings = standardOutput->Settings();
+        outputSettings.includeDebug = true;
+        standardOutput->SetSettings(outputSettings);
+        logFile->SetMinLogLevel(Logging::LogLevel::Debug);    
     }
     
-    WaveFile inputFile{ inputFileParam->Value() };
-    if (inputFile.Exists())
-    {
-        PrintSectionHeader("File");
-        PrintField("Filename", inputFile.FileName());
-        logger.Write("");
-    }
-    else
-    {
-        std::stringstream error;
-        error << inputFileParam->Value() << " does not exist!";
-        logger.Write(error.str(), Logging::LogLevel::Error);
-        return 1;
-    }
-    inputFile.Open();
+    std::shared_ptr<MediaFile> inputFile = OpenFile(inputFileParam->Value());
+    if (inputFile == nullptr)
+        return ExitStatusInputFileError;
 
     ConversionMethod method = ConversionMethod::LinearScaling;
     if (directCopyParam->IsSpecified())
@@ -71,34 +65,42 @@ int Program::Run()
 
     if (to8BitParam->IsSpecified())
     {
-        inputFile.Convert(outputFileParam->Value(), BitDepth::UInt8, method);
-        return 0;
+        inputFile->Convert(outputFileParam->Value(), BitDepth::UInt8, method);
+        return ExitStatusSuccess;
     }
     else if (to16BitParam->IsSpecified())
     {
-        inputFile.Convert(outputFileParam->Value(), BitDepth::Int16, method);
-        return 0;
+        inputFile->Convert(outputFileParam->Value(), BitDepth::Int16, method);
+        return ExitStatusSuccess;
     }
     else if (to24BitParam->IsSpecified())
     {
-        inputFile.Convert(outputFileParam->Value(), BitDepth::Int24, method);
-        return 0;
+        inputFile->Convert(outputFileParam->Value(), BitDepth::Int24, method);
+        return ExitStatusSuccess;
     }
     else if (to32BitParam->IsSpecified())
     {
-        inputFile.Convert(outputFileParam->Value(), BitDepth::Int32, method);
-        return 0;
+        inputFile->Convert(outputFileParam->Value(), BitDepth::Int32, method);
+        return ExitStatusSuccess;
     }
     else if (analyzeOption->IsSpecified())
     {
-        inputFile.Analyze();
-        PrintWaveInfo(inputFile);
-        PrintAnalysisResults(inputFile);
-        return 0;
+        logger->Write("Analyzing file, please wait...");
+        if (dumpOption->IsSpecified())
+        {
+            logger->Write(
+                "NOTE: --dump-samples specified, this may take a while.");
+        }
+        logger->Write("");
+
+        inputFile->Analyze(dumpOption->IsSpecified());
+        PrintMediaInfo(inputFile.get());
+        PrintAnalysisResults(inputFile.get());
+        return ExitStatusSuccess;
     }
     else
     {
-        return PrintWaveInfo(inputFile);
+        return PrintMediaInfo(inputFile.get());
     }
 }
 
@@ -148,6 +150,12 @@ void Program::DefineParams()
     methodOption->Add(directCopyParam.get());
     methodOption->Add(linearScalingParam.get());
 
+    CmdLine::ValueOption::Definition debugDef;
+    debugDef.shortName = 'd';
+    debugDef.longName = "debug";
+    debugDef.description = "includes debug info in the log and on the screen";
+    debugOption = std::make_shared<CmdLine::Option>(debugDef);
+
     CmdLine::OptionParam::Definition to8BitDef;
     to8BitDef.name = "8-bit";
     to8BitDef.description = "converts the file to 8-bit audio";
@@ -181,8 +189,14 @@ void Program::DefineParams()
     CmdLine::Option::Definition logDef;
     logDef.shortName = 'l';
     logDef.longName = "log";
-    logDef.description = "Writes messages to a log file, Log.txt";
+    logDef.description = "writes messages to a log file, Log.txt";
     logOption = std::make_shared<CmdLine::Option>(logDef);
+
+    CmdLine::Option::Definition dumpDef;
+    dumpDef.shortName = 's';
+    dumpDef.longName = "dump-samples";
+    dumpDef.description = "dumps samples to a text file. Use with -a.";
+    dumpOption = std::make_shared<CmdLine::Option>(dumpDef);
 }
 
 bool Program::ParseArguments()
@@ -194,24 +208,26 @@ bool Program::ParseArguments()
     parser.Add(convertOption.get());
     parser.Add(methodOption.get());
     parser.Add(logOption.get());
+    parser.Add(debugOption.get());
+    parser.Add(dumpOption.get());
     CmdLine::Parser::Status status = parser.Parse();
 
     if (status == CmdLine::Parser::Status::Failure)
     {
-        logger.Write(parser.GenerateUsage());
-        logger.Write(
+        logger->Write(parser.GenerateUsage());
+        logger->Write(
             "Invalid command line arguments specified!", 
             Logging::LogLevel::Error);
         return false;
     }  
     else if (parser.BuiltInHelpOptionIsSpecified())
     {
-        logger.Write(parser.GenerateHelp());
+        logger->Write(parser.GenerateHelp());
         return false;
     }
     else if (!parser.AllMandatoryParamsSpecified())
     {
-        logger.Write(parser.GenerateUsage());
+        logger->Write(parser.GenerateUsage());
         return false;
     }
     else
@@ -227,34 +243,59 @@ void Program::PrintProgramInfo()
         << PROGRAM_NAME << " v" << VERSION_MAJOR << "." << VERSION_MINOR
         << " " << PROGRAM_RELEASE;
 
-    logger.Write(version.str());
-    logger.Write(PROGRAM_COPYRIGHT);
-    logger.Write("");
+    logger->Write(version.str());
+    logger->Write(PROGRAM_COPYRIGHT);
+    logger->Write("");
 }
 
 void Program::PrintSectionHeader(std::string text)
 {
-    logger.Write(text);
-    logger.Write("----------------------------------------");
+    logger->Write(text);
+    logger->Write("----------------------------------------");
 }
 
-void Program::PrintField(std::string fieldName, std::string value)
+void Program::PrintField(
+    std::string fieldName, 
+    std::string value, 
+    Logging::LogLevel level)
 {
     std::stringstream field;
     field << std::setw(20) << std::left << fieldName << ": " << value;
-    logger.Write(field.str());
+    logger->Write(field.str(), level);
 }
 
-int Program::PrintWaveInfo(WaveFile& file)
+int Program::PrintMediaInfo(MediaFile* file)
 {
-    RiffChunkHeader header = file.GetChunkHeader();
+    MediaFileType type = GetType(file->FileName());
+    switch (type)
+    {
+        case MediaFileType::Wave:
+        {
+            WaveFile* waveFile = dynamic_cast<WaveFile*>(file);
+            return PrintWaveInfo(waveFile);
+        }
+        case MediaFileType::Flac:
+        {
+            FlacFile* flacFile = dynamic_cast<FlacFile*>(file);
+            return PrintFlacInfo(flacFile);
+        }
+        case MediaFileType::Unsupported:
+        {
+            return ExitStatusUnsupportedFile;
+        }
+    }
+}
+
+int Program::PrintWaveInfo(WaveFile* file)
+{
+    RiffChunkHeader header = file->ChunkHeader();
     PrintSectionHeader("RIFF Chunk Header");
     PrintField("Chunk ID", header.id.ToString());
     PrintField("Chunk Size", header.size.ToString());
     PrintField("File Type", header.type.ToString());
-    logger.Write("");
+    logger->Write("");
 
-    WaveFormat format = file.GetFormat();
+    WaveFormat format = file->Format();
     PrintSectionHeader("Format Info");
     PrintField("Audio Format", format.audioFormat.ToString());
     PrintField("Channels", format.channels.ToString());
@@ -262,59 +303,92 @@ int Program::PrintWaveInfo(WaveFile& file)
     PrintField("Byte Rate", format.byteRate.ToString());
     PrintField("Block Align", format.blockAlign.ToString());
     PrintField("Bits / Sample", format.bitsPerSample.ToString());
-    logger.Write("");
+    logger->Write("");
 
-    return 0;
+    return ExitStatusSuccess;
 }
 
-void Program::PrintAnalysisResults(WaveFile& file)
+int Program::PrintFlacInfo(FlacFile* file)
+{
+    FlacFormat format = file->Format();
+    PrintSectionHeader("Format Info");
+    PrintField("Channels", std::to_string(format.channels));
+    PrintField("Sample Rate", std::to_string(format.sampleRate));
+    PrintField("Block Size", std::to_string(format.blockSize));
+    PrintField("Bits / Sample", std::to_string(format.bitsPerSample));
+    PrintField("Total Samples", std::to_string(format.totalSamples));
+    logger->Write("");
+
+    return ExitStatusSuccess;
+}
+
+void Program::PrintAnalysisResults(MediaFile* file)
 {
     PrintSectionHeader("Analysis Results");
     
-    if (file.IsUpscaleConversion())
+    if (file->IsUpscaleConversion())
     {
-        logger.Write("File appears to be an upscale conversion");
+        logger->Write("File appears to be an upscale conversion");
     }
     else
     {
-        logger.Write("File appears to be a natural bit-depth");
+        logger->Write("File appears to be a natural bit-depth");
     }
 }
 
-void Program::Debug()
+std::shared_ptr<MediaFile> Program::OpenFile(std::string fileName)
 {
-    std::cout << "DEBUG" << std::endl;
-    std::cout << "-----" << std::endl;
+    std::shared_ptr<MediaFile> inputFile;
+    MediaFileType type = GetType(fileName);
+    switch (type)
+    {
+        case MediaFileType::Wave:
+            inputFile = std::make_shared<WaveFile>(fileName, logger);
+            break;
+        case MediaFileType::Flac:
+            inputFile = std::make_shared<FlacFile>(fileName, logger);
+            break;
+        case MediaFileType::Unsupported:
+            logger->Write("Unsupported file type", Logging::LogLevel::Error);
+            return nullptr;
+    }
 
-    int positive = 127;
-    BinData::Int16Field positiveField{ positive };
-    BinData::Int16Field shiftedPositiveField{ 0 };
-    shiftedPositiveField.SetValue(positive << 8);
-    std::cout << "127       : ";
-    std::cout << positiveField.ToString(BinData::Format::Bin) << std::endl;
-    std::cout << "127 << 8  : ";
-    std::cout << shiftedPositiveField.ToString(BinData::Format::Bin);
-    std::cout << std::endl << std::endl;;
-
-    if ((positiveField.Value() ^ 0x00FF) == 0)
-        std::cout << "Empty least significant byte on positive" << std::endl;
+    if (inputFile->Exists())
+    {
+        PrintSectionHeader("File");
+        PrintField("Filename", inputFile->FileName());
+        logger->Write("");
+    }
     else
-        std::cout << (positiveField.Value() ^ 0x00FF) << std::endl;
+    {
+        std::stringstream error;
+        error << inputFileParam->Value() << " does not exist!";
+        logger->Write(error.str(), Logging::LogLevel::Error);
+        return nullptr;
+    }
 
-    if ((shiftedPositiveField.Value() ^ 0xFF00) == 0)
-        std::cout << "Empty least significant byte on shifted positive" << std::endl;
+    try
+    {
+        inputFile->Open();
+    }
+    catch (const MediaFormatError& error)
+    {
+        logger->Write(error.what(), Logging::LogLevel::Error);
+        return nullptr;
+    }
+    
+    return inputFile;
+}
 
-    int negative = -128;
-    BinData::Int16Field negativeField{ negative };
-    BinData::Int16Field shiftedNegativeField{ 0 };
-    BinData::Int16Field maskedValueField{ 0 };
-    shiftedNegativeField.SetValue(negative << 8);
-    maskedValueField.SetValue(shiftedNegativeField.Value() & 0x00FF);
-    std::cout << "-128      : " << negativeField.ToString(BinData::Format::Bin) << std::endl;
-    std::cout << "-128 << 8 : ";
-    std::cout << shiftedNegativeField.ToString(BinData::Format::Bin);
-    std::cout << std::endl << std::endl;
-
-    std::cout << "Masked    : ";
-    std::cout << maskedValueField.ToString(BinData::Format::Bin) << std::endl;
+MediaFileType GetType(std::string fileName)
+{
+    std::filesystem::path path = std::filesystem::path{ fileName };
+    std::string ext = path.extension();
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::toupper);
+    
+    if (ext == ".WAV")
+        return MediaFileType::Wave;
+    else if (ext == ".FLAC")
+        return MediaFileType::Flac;
+    return MediaFileType::Unsupported;
 }

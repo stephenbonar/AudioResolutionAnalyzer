@@ -1,4 +1,4 @@
-// ConsoleMain.h - The main application entry point for the console version.
+// Main.cpp - The main application entry point for the GUI version.
 //
 // Copyright (C) 2024 Stephen Bonar
 //
@@ -14,10 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Program.h"
+#include <wx/wx.h>
+#include "AudioResolutionAnalyzer.h"
 
-int main(int argc, char** argv)
-{
-    Program program{ argc, argv };
-    return program.Run();
-}
+// This defines the equivalent of main() for the current platform.
+wxIMPLEMENT_APP(AudioResolutionAnalyzer);

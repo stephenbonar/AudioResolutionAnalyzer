@@ -6,6 +6,7 @@
             "command": "build",
             "targets": [
                 "analyzeaudio",
+                "AudioResolutionAnalyzer"
                 "bindatatests",
                 "loggingtests"
             ],

@@ -1,4 +1,4 @@
-// ConsoleMain.h - The main application entry point for the console version.
+// AudioResolutionAnalyzer.h - Declares the AudioResolutionAnalyzer class.
 //
 // Copyright (C) 2024 Stephen Bonar
 //
@@ -14,10 +14,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Program.h"
+#ifndef AUDIO_RESOLUTION_ANALYZER_H
+#define AUDIO_RESOLUTION_ANALYZER_H
 
-int main(int argc, char** argv)
+#include <wx/wx.h>
+#include "MainWindow.h"
+
+class AudioResolutionAnalyzer : public wxApp
 {
-    Program program{ argc, argv };
-    return program.Run();
-}
+public:
+    bool OnInit() override;
+};
+
+#endif

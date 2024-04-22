@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissionsand
 # limitations under the License.
 
-# Define the directories that contain the header files the tests include.
+# Define the directories that contain the header files the programs include.
 set(INCLUDES 
     ${PROJECT_SOURCE_DIR}/LibCppBinData/LibCppBinData
     ${PROJECT_SOURCE_DIR}/LibCppCmdLine/LibCppCmdLine
@@ -24,27 +24,48 @@ set(INCLUDES
     ${PROJECT_BINARY_DIR}/AudioResolutionAnalyzer)
 
 # Define the source files that make up the main program.
-set(SOURCES
-    ConsoleMain.cpp 
-    Program.cpp
+set(COMMON_SOURCES
     WaveFile.cpp
     FlacFile.cpp
     SampleDumper.cpp)
+
+# Define the source files that make up the console program.
+set(CONSOLE_SOURCES
+    ConsoleMain.cpp 
+    Program.cpp)
+
+# Define the source files that make up the GUI program.
+set(GUI_SOURCES
+    Main.cpp
+    AudioResolutionAnalyzer.cpp
+    MainWindow.cpp)
 
 # Configure the program version info from the main cmake project into the
 # Version.h header, which is build into the program binary. This is done so
 # we centrally update the program name, version, and copyright from cmake.
 configure_file(Version.h.in Version.h)
 
-# Define the libraries the tests need to link against.
-set(LIBRARIES LibCppBinData LibCppCmdLine LibCppLogging FLAC++)
+# Define the common libraries the the executables need to link with.
+set(COMMON_LIBRARIES LibCppBinData LibCppCmdLine LibCppLogging FLAC++)
 
-# Define the executable targets.
-add_executable(analyzeaudio ${SOURCES})
+# Define the additional libraries the GUI needs to link with. 
+set(GUI_LIBRARIES wx::net wx::core wx::base)
+
+# Define the console executable target.
+add_executable(analyzeaudio ${COMMON_SOURCES} ${CONSOLE_SOURCES})
+
+# Define the GUI executable target.
+add_executable(AudioResolutionAnalyzer ${COMMON_SOURCES} ${GUI_SOURCES})
 
 # Include all the directories that contain headers that we need that are not
 # in the current directory, otherwise the compiler won't find them
 target_include_directories(analyzeaudio PUBLIC ${INCLUDES})
 
-# Configure the tunebeepertests target to link to the necessary libraries
-target_link_libraries(analyzeaudio ${LIBRARIES})
+# Configure the console target to link to the necessary libraries.
+target_link_libraries(analyzeaudio ${COMMON_LIBRARIES})
+
+# Configure the GUI library to link the necessary libraries.
+target_link_libraries(
+    AudioResolutionAnalyzer 
+    ${COMMON_LIBRARIES} 
+    ${GUI_LIBRARIES})

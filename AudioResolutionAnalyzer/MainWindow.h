@@ -1,4 +1,4 @@
-// ConsoleMain.h - The main application entry point for the console version.
+// MainWindow.h - Declares the MainWindow class.
 //
 // Copyright (C) 2024 Stephen Bonar
 //
@@ -14,10 +14,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Program.h"
+#ifndef MAIN_WINDOW_H
+#define MAIN_WINDOW_H
 
-int main(int argc, char** argv)
+#include <wx/wx.h>
+
+class MainWindow : public wxFrame
 {
-    Program program{ argc, argv };
-    return program.Run();
-}
+public:
+    MainWindow();
+ 
+private:
+    void OnHello(wxCommandEvent& event);
+    void OnExit(wxCommandEvent& event);
+    void OnAbout(wxCommandEvent& event);
+};
+
+#endif

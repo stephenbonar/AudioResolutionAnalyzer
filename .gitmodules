@@ -10,3 +10,6 @@
 [submodule "LibCppLogging"]
 	path = LibCppLogging
 	url = https://github.com/stephenbonar/LibCppLogging
+[submodule "wxWidgets"]
+	path = wxWidgets
+	url = https://github.com/wxWidgets/wxWidgets

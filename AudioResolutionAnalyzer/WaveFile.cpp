@@ -22,21 +22,9 @@ WaveFile::WaveFile(
 {
     this->fileName = fileName;
     this->logger = logger;
-    this->isUpscaleConversion = false;
+    this->isUpscaled = false;
     readStream = std::make_shared<BinData::StdFileStream>(fileName);
     sampleDumper = std::make_shared<SampleDumper>(fileName);
-
-    /*
-    std::stringstream pathStream;
-    std::filesystem::path path = std::filesystem::path{ fileName };
-    pathStream << path.stem().string() << "_samples.txt";
-    sampleDumper = std::make_shared<Logging::Logger>();
-    sampleDump = std::make_shared<Logging::LogFile>(pathStream.str());
-    Logging::ChannelSettings dumpSettings = sampleDump->Settings();
-    dumpSettings.includeTimestamp = false;
-    dumpSettings.includeLogLevel = false;
-    sampleDump->SetSettings(dumpSettings);
-    sampleDumper->Add(sampleDump.get());*/
 }
 
 void WaveFile::Open()
@@ -127,7 +115,7 @@ void WaveFile::Analyze(bool dumpSamples)
 
     // Start by assuming the file is an upscale conversion; the analysis will
     // disprove it if it finds any non-zero least significant bytes.
-    isUpscaleConversion = true;
+    isUpscaled = true;
     
     int bytesPerSample = 0;
     switch (format.bitsPerSample.Value())
@@ -232,26 +220,6 @@ void WaveFile::Convert(
                 success = ConvertNext<BinData::Int32Field>(method, depth);
                 break;
         }
-        /*
-        switch (format.bitsPerSample.Value())
-        {
-            case 8:
-                success = ConvertNextSample<BinData::UInt8Field>(
-                    depth, method);
-                break;
-            case 16:
-                success = ConvertNextSample<BinData::Int16Field>(
-                    depth, method);
-                break;
-            case 24:
-                success = ConvertNextSample<BinData::Int24Field>(
-                    depth, method);
-                break;
-            case 32:
-                success = ConvertNextSample<BinData::Int32Field>(
-                    depth, method);
-                break;
-        }*/
 
         if (!success)
             break;

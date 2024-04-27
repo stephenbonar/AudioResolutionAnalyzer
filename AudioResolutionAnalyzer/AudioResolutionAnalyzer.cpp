@@ -18,7 +18,10 @@
 
 bool AudioResolutionAnalyzer::OnInit()
 {
-    MainWindow *window = new MainWindow();
+    std::stringstream programInfo;
+    programInfo << PROGRAM_NAME << " v" << VERSION_MAJOR << "." 
+                << VERSION_MINOR;
+    MainWindow *window = new MainWindow(wxString{ programInfo.str() });
     window->Show();
     return true;
 }

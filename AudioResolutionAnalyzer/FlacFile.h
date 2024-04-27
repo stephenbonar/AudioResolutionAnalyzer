@@ -34,12 +34,16 @@ public:
     FlacFile(std::string fileName, std::shared_ptr<Logging::Logger> logger) :
         FLAC::Decoder::File(),
         fileName{ fileName }, 
-        isUpscaleConversion{ false },
+        isUpscaled{ false },
         logger{ logger },
         dumper{ std::make_shared<SampleDumper>(fileName) } 
         {}
 
     std::string FileName() const override { return fileName; }
+
+    int BitsPerSample() const override { return format.bitsPerSample; }
+
+    long SampleRate() const override { return format.sampleRate; }
 
     FlacFormat Format() const { return format; }
 
@@ -52,7 +56,7 @@ public:
         BitDepth depth, 
         ConversionMethod method) override;
 
-    bool IsUpscaleConversion() const override { return isUpscaleConversion; }
+    bool IsUpscaled() const override { return isUpscaled; }
 protected:
     ::FLAC__StreamDecoderWriteStatus write_callback(
         const ::FLAC__Frame *frame, 
@@ -63,7 +67,7 @@ protected:
 	void error_callback(::FLAC__StreamDecoderErrorStatus status) override;
 private:
     std::string fileName;
-    bool isUpscaleConversion;
+    bool isUpscaled;
     FlacFormat format;
     std::shared_ptr<Logging::Logger> logger;
     std::shared_ptr<SampleDumper> dumper;
@@ -85,7 +89,7 @@ private:
         // least significant bytes is non-zero, the file is not likely
         // to be an upscale conversion.
         if ((sample.Value() & 0xFF) != 0)
-            isUpscaleConversion = false;
+            isUpscaled = false;
     }
 };
 

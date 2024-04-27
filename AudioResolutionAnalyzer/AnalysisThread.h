@@ -1,4 +1,4 @@
-// AudioResolutionAnalyzer.h - Declares the AudioResolutionAnalyzer class.
+// AnalysisThread.h - Declares the AnalysisThread class.
 //
 // Copyright (C) 2024 Stephen Bonar
 //
@@ -14,18 +14,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef AUDIO_RESOLUTION_ANALYZER_H
-#define AUDIO_RESOLUTION_ANALYZER_H
+#ifndef ANALYSIS_THREAD_H
+#define ANALYSIS_THREAD_H
 
-#include <sstream>
+#include <vector>
+#include <memory>
 #include <wx/wx.h>
-#include "MainWindow.h"
-#include "Version.h"
+#include "MediaFile.h"
 
-class AudioResolutionAnalyzer : public wxApp
+class AnalysisThread : public wxThread
 {
 public:
-    bool OnInit() override;
+    static constexpr int StatusUpdateID{ 10000 };
+    static constexpr int StatusCompleteID{ 10001 };
+
+    AnalysisThread(wxFrame* parent, 
+                   std::vector<std::shared_ptr<MediaFile>>& fileList)
+        : parent{ parent }, fileList{ fileList } { }
+
+    ExitCode Entry() override;
+private:
+    wxFrame* parent;
+    std::vector<std::shared_ptr<MediaFile>>& fileList;
 };
 
 #endif

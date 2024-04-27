@@ -39,6 +39,10 @@ public:
 
     virtual std::string FileName() const = 0;
 
+    virtual int BitsPerSample() const = 0;
+
+    virtual long SampleRate() const = 0;
+
     virtual void Open() = 0;
 
     virtual bool Exists() const { return std::filesystem::exists(FileName()); }
@@ -50,7 +54,7 @@ public:
         BitDepth depth, 
         ConversionMethod method) = 0;
 
-    virtual bool IsUpscaleConversion() const = 0;
+    virtual bool IsUpscaled() const = 0;
 };
 
 #endif

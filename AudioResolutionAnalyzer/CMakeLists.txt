@@ -38,7 +38,8 @@ set(CONSOLE_SOURCES
 set(GUI_SOURCES
     Main.cpp
     AudioResolutionAnalyzer.cpp
-    MainWindow.cpp)
+    MainWindow.cpp
+    AnalysisThread.cpp)
 
 # Configure the program version info from the main cmake project into the
 # Version.h header, which is build into the program binary. This is done so
@@ -60,6 +61,10 @@ add_executable(AudioResolutionAnalyzer ${COMMON_SOURCES} ${GUI_SOURCES})
 # Include all the directories that contain headers that we need that are not
 # in the current directory, otherwise the compiler won't find them
 target_include_directories(analyzeaudio PUBLIC ${INCLUDES})
+
+# Include all the directories that contain headers that we need that are not
+# in the current directory, otherwise the compiler won't find them
+target_include_directories(AudioResolutionAnalyzer PUBLIC ${INCLUDES})
 
 # Configure the console target to link to the necessary libraries.
 target_link_libraries(analyzeaudio ${COMMON_LIBRARIES})

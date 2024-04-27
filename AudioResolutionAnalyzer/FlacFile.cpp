@@ -25,7 +25,7 @@ void FlacFile::Analyze(bool dumpSamples)
 {
     // Start by assuming the file is an upscale conversion; the analysis will
     // disprove it if it finds any non-zero least significant bytes.
-    isUpscaleConversion = true;
+    isUpscaled = true;
 
     this->dumpSamples = dumpSamples;
 

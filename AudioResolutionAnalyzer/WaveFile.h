@@ -41,24 +41,28 @@ public:
 
     WaveFile(std::string fileName, std::shared_ptr<Logging::Logger> logger);
 
-    void Open();
+    int BitsPerSample() const override { return format.bitsPerSample.Value(); }
+
+    long SampleRate() const override { return format.sampleRate.Value(); }
+
+    void Open() override;
 
     RiffChunkHeader ChunkHeader() const { return chunkHeader; }
 
     WaveFormat Format() const { return format; }
 
-    std::string FileName() const { return fileName; }
+    std::string FileName() const override { return fileName; }
 
-    void Analyze(bool dumpSamples);
+    void Analyze(bool dumpSamples) override;
 
     void Convert(
         std::string outputFileName, 
         BitDepth depth, 
-        ConversionMethod method);
+        ConversionMethod method) override;
 
-    bool IsUpscaleConversion() const { return isUpscaleConversion; }
+    bool IsUpscaled() const override { return isUpscaled; }
 private:
-    bool isUpscaleConversion;
+    bool isUpscaled;
     std::string fileName;
     RiffChunkHeader chunkHeader;
     RiffSubChunkHeader formatHeader;
@@ -125,7 +129,7 @@ private:
         // bytes is non-zero, the file is not likely to be an upscale
         // conversion.
         if ((sample.Value() & 0xFF) != 0)
-            isUpscaleConversion = false;
+            isUpscaled = false;
     }
 };
 

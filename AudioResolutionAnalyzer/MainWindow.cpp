@@ -16,42 +16,124 @@
 
 #include "MainWindow.h"
 
-enum
+enum ID
 {
-    ID_Hello = 1
+    File = 1,
+    Analyze
 };
 
-MainWindow::MainWindow() : wxFrame(
-    nullptr, 
-    wxID_ANY, 
-    "AudioResolutionAnalyzer")
+enum Column
 {
-    wxMenu *menuFile = new wxMenu;
-    menuFile->Append(ID_Hello, "&Hello...\tCtrl-H",
-                     "Help string shown in status bar for this menu item");
-    menuFile->AppendSeparator();
-    menuFile->Append(wxID_EXIT);
+    FileName = 0,
+    BitDepth,
+    SampleRate,
+    IsUpscaled
+};
+
+// catch the event from the thread
+BEGIN_EVENT_TABLE(MainWindow, wxFrame)
+EVT_COMMAND(AnalysisThread::StatusUpdateID, wxEVT_COMMAND_TEXT_UPDATED,
+            MainWindow::OnStatusUpdate)
+EVT_COMMAND(AnalysisThread::StatusCompleteID, wxEVT_COMMAND_TEXT_UPDATED,
+            MainWindow::OnAnalysisComplete)
+END_EVENT_TABLE()
+
+MainWindow::MainWindow(wxString programInfo) : 
+    wxFrame(nullptr, wxID_ANY, programInfo)
+{
+    this->programInfo = programInfo;
+
+    wxMenu *fileMenu = new wxMenu;
+    openMenuItem = new wxMenuItem
+    {
+        fileMenu, ID::File, "&Open...\tCtrl-O", 
+        "Opens audio files for analysis" 
+    };
+    fileMenu->Append(openMenuItem);
+    fileMenu->AppendSeparator();
+    fileMenu->Append(wxID_EXIT);
  
-    wxMenu *menuHelp = new wxMenu;
-    menuHelp->Append(wxID_ABOUT);
+    wxMenu *helpMenu = new wxMenu;
+    helpMenu->Append(wxID_ABOUT);
  
     wxMenuBar *menuBar = new wxMenuBar;
-    menuBar->Append(menuFile, "&File");
-    menuBar->Append(menuHelp, "&Help");
+    menuBar->Append(fileMenu, "&File");
+    menuBar->Append(helpMenu, "&Help");
  
     SetMenuBar( menuBar );
  
     CreateStatusBar();
-    SetStatusText("Welcome to wxWidgets!");
+    SetStatusText("Ready");
+
+    fileListView = new wxListView
+    {
+        this, wxID_ANY, wxDefaultPosition, wxSize{600, 400}
+    };
+    fileListView->AppendColumn("File Name", wxLIST_FORMAT_LEFT, 300);
+    fileListView->AppendColumn("Bit Depth");
+    fileListView->AppendColumn("Sample Rate");
+    fileListView->AppendColumn("Is Upscaled");
+
+    analyzeButton = new wxButton{ this, ID::Analyze, "Analyze" };
+    progressBar = new wxGauge{ this, wxID_ANY, 100, wxDefaultPosition, wxSize{ 200, 10 } };
+
+    wxBoxSizer* mainSizer = new wxBoxSizer{ wxVERTICAL };
+    mainSizer->Add(fileListView, 1, wxEXPAND);
+
+    wxBoxSizer* controlPanelSizer = new wxBoxSizer{ wxHORIZONTAL };
+    controlPanelSizer->Add(analyzeButton, 0, wxALL, 10);
+    controlPanelSizer->Add(progressBar, 0, wxCENTER);
+    mainSizer->Add(controlPanelSizer, 0);
  
-    Bind(wxEVT_MENU, &MainWindow::OnHello, this, ID_Hello);
+    Bind(wxEVT_MENU, &MainWindow::OnOpen, this, ID::File);
     Bind(wxEVT_MENU, &MainWindow::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_MENU, &MainWindow::OnExit, this, wxID_EXIT);
+    Bind(wxEVT_BUTTON, &MainWindow::OnAnalyze, this, ID::Analyze);
+
+    logger = std::make_shared<Logging::Logger>();
+
+    this->SetSizerAndFit(mainSizer);
 }
 
-void MainWindow::OnHello(wxCommandEvent& event)
+void MainWindow::OnOpen(wxCommandEvent& event)
 {
-    wxLogMessage("Hello world from wxWidgets!");
+    wxFileDialog dialog(this, _("Open media file"), "", "",
+                        "Media files (*.wav)|*.flac", 
+                        wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        fileList.clear();
+        wxArrayString paths;
+        dialog.GetPaths(paths);
+
+        for (wxString path : paths)
+        {
+            std::string pathString = path.ToStdString();
+            std::filesystem::path filePath{ pathString };
+            std::string fileName{ filePath.stem().string() };
+            std::string extension { filePath.extension().string() };
+
+            std::shared_ptr<MediaFile> file;
+            if (extension == ".wav")
+            {
+                file = std::make_shared<WaveFile>(pathString, logger);
+            }  
+            else if (extension == ".flac")
+            {
+                file = std::make_shared<FlacFile>(pathString, logger);
+            }   
+            else
+            {
+                wxMessageBox("Unsupported file type!", "Error", 
+                            wxOK | wxICON_ERROR);
+            }
+
+            fileList.push_back(file);
+        }
+            
+        PopulateFileListView();
+    }
 }
 
 void MainWindow::OnExit(wxCommandEvent& event)
@@ -61,6 +143,75 @@ void MainWindow::OnExit(wxCommandEvent& event)
 
 void MainWindow::OnAbout(wxCommandEvent& event)
 {
-    wxMessageBox("This is a wxWidgets Hello World example",
-                 "About Hello World", wxOK | wxICON_INFORMATION);
+    std::stringstream about;
+    about << programInfo << std::endl << PROGRAM_COPYRIGHT;
+    wxMessageBox(about.str(), "About", wxOK | wxICON_INFORMATION);
+}
+
+void MainWindow::OnAnalyze(wxCommandEvent& event)
+{
+    analyzeButton->Enable(false);
+    openMenuItem->Enable(false);
+
+    AnalysisThread* thread = new AnalysisThread{ this, fileList };
+    wxThreadError error = thread->Create();
+    if (error != wxTHREAD_NO_ERROR)
+        ShowError("Could not create thread to analyze audio!");
+
+    error = thread->Run();
+    if (error != wxTHREAD_NO_ERROR)
+        ShowError("Could not run thread to analyze audio!");
+}
+
+void MainWindow::OnStatusUpdate(wxCommandEvent& event)
+{
+    progressBar->SetValue(event.GetInt());
+    SetStatusText(event.GetString());
+}
+
+void MainWindow::OnAnalysisComplete(wxCommandEvent& event)
+{
+    analyzeButton->Enable(true);
+    openMenuItem->Enable(true);
+    progressBar->SetValue(100);
+    UpdateFileListView();
+    SetStatusText("Ready");
+}
+
+void MainWindow::PopulateFileListView()
+{
+    fileListView->DeleteAllItems();
+
+    int itemIndex{ 0 };
+    for (std::shared_ptr<MediaFile> file : fileList)
+    {
+        std::filesystem::path path{ file->FileName() };
+        fileListView->InsertItem(itemIndex, path.filename().string());
+        itemIndex++;
+    }
+}
+
+void MainWindow::UpdateFileListView()
+{
+    int itemIndex{ 0 };
+    for (std::shared_ptr<MediaFile> file : fileList)
+    {
+        std::filesystem::path path{ file->FileName() };
+        fileListView->SetItem(itemIndex, Column::FileName, 
+                              path.filename().string());
+        fileListView->SetItem(itemIndex, Column::BitDepth, 
+                              std::to_string(file->BitsPerSample()));
+        fileListView->SetItem(itemIndex, Column::SampleRate, 
+                              std::to_string(file->SampleRate()));
+        if (file->IsUpscaled())
+            fileListView->SetItem(itemIndex, Column::IsUpscaled, "Yes");
+        else
+            fileListView->SetItem(itemIndex, Column::IsUpscaled, "No");
+        itemIndex++;
+    }
+}
+
+void MainWindow::ShowError(wxString message)
+{
+    wxMessageBox(message, "AudioResolutionAnalyzer", wxOK | wxICON_ERROR);
 }

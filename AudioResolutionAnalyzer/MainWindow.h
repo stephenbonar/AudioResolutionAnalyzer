@@ -17,17 +17,51 @@
 #ifndef MAIN_WINDOW_H
 #define MAIN_WINDOW_H
 
+#include <filesystem>
+#include <memory>
+#include <vector>
+#include <sstream>
 #include <wx/wx.h>
+#include <wx/listctrl.h>
+#include "MediaFile.h"
+#include "WaveFile.h"
+#include "FlacFile.h"
+#include "Logging.h"
+#include "AnalysisThread.h"
+#include "Version.h"
 
 class MainWindow : public wxFrame
 {
 public:
-    MainWindow();
- 
+    MainWindow(wxString programInfo);
 private:
-    void OnHello(wxCommandEvent& event);
+    wxMenuItem* openMenuItem;
+    wxListView* fileListView;
+    wxButton* analyzeButton;
+    wxGauge* progressBar;
+    wxString programInfo;
+    std::vector<std::shared_ptr<MediaFile>> fileList;
+    std::shared_ptr<Logging::Logger> logger; 
+
+    void OnOpen(wxCommandEvent& event);
+
     void OnExit(wxCommandEvent& event);
+
     void OnAbout(wxCommandEvent& event);
+
+    void OnAnalyze(wxCommandEvent& event);
+
+    void OnStatusUpdate(wxCommandEvent& event);
+
+    void OnAnalysisComplete(wxCommandEvent& event);
+
+    void PopulateFileListView();
+
+    void UpdateFileListView();
+
+    void ShowError(wxString message);
+
+    DECLARE_EVENT_TABLE()
 };
 
 #endif

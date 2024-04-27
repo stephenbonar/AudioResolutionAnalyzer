@@ -326,7 +326,7 @@ void Program::PrintAnalysisResults(MediaFile* file)
 {
     PrintSectionHeader("Analysis Results");
     
-    if (file->IsUpscaleConversion())
+    if (file->IsUpscaled())
     {
         logger->Write("File appears to be an upscale conversion");
     }

@@ -383,7 +383,7 @@ std::shared_ptr<MediaFile> Program::OpenFile(std::string fileName)
 MediaFileType GetType(std::string fileName)
 {
     std::filesystem::path path = std::filesystem::path{ fileName };
-    std::string ext = path.extension();
+    std::string ext = path.extension().string();
     std::transform(ext.begin(), ext.end(), ext.begin(), ::toupper);
     
     if (ext == ".WAV")

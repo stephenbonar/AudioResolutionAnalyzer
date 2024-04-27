@@ -29,9 +29,16 @@ WaveFile::WaveFile(
 
 void WaveFile::Open()
 {
-    if (!readStream->IsOpen())
-        readStream->Open(BinData::FileMode::Read);
+    if (!Exists())
+        logger->Write("File does not exist!", Logging::LogLevel::Error);
 
+    if (!readStream->IsOpen())
+    {
+        readStream->Open(BinData::FileMode::Read);
+        if (!readStream->IsOpen())
+            logger->Write("Unable to open file", Logging::LogLevel::Error);
+    }
+        
     chunkHeader = ReadChunkHeader();
 
     bool dataFound = false;

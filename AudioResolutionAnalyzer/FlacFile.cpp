@@ -18,7 +18,7 @@
 
 void FlacFile::Open()
 {
-
+    file = std::shared_ptr<FILE>(fopen(fileName.c_str(), "rb"));
 }
 
 void FlacFile::Analyze(bool dumpSamples)
@@ -31,9 +31,9 @@ void FlacFile::Analyze(bool dumpSamples)
 
     // Calls the init method from FLAC::Decoder::File, which opens the file
     // for reading and decoding.
-    FLAC__StreamDecoderInitStatus initStatus = init(fileName);
+    FLAC__StreamDecoderInitStatus initStatus = init(file.get());
 
-    if(initStatus == FLAC__STREAM_DECODER_INIT_STATUS_OK) 
+    if (initStatus == FLAC__STREAM_DECODER_INIT_STATUS_OK) 
     {
         // Calling this method from FLAC::Decoder::Stream, base of 
         // FLAC::Decoder::File, starts decoding the FLAC until the end of the
@@ -51,7 +51,7 @@ void FlacFile::Analyze(bool dumpSamples)
     else
     {
         logger->Write(
-            "Unable to initialized FLAC decoder", 
+            "Unable to initialize FLAC decoder", 
             Logging::LogLevel::Error);
     }
 }

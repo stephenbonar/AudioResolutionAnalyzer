@@ -41,7 +41,8 @@ private:
     wxGauge* progressBar;
     wxString programInfo;
     std::vector<std::shared_ptr<MediaFile>> fileList;
-    std::shared_ptr<Logging::Logger> logger; 
+    std::shared_ptr<Logging::Logger> logger;
+    std::shared_ptr<Logging::LogFile> logFile;
 
     void OnOpen(wxCommandEvent& event);
 

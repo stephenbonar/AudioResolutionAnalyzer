@@ -45,6 +45,8 @@ public:
 
     long SampleRate() const override { return format.sampleRate.Value(); }
 
+    bool IsOpen() const override { return readStream->IsOpen(); }
+
     void Open() override;
 
     RiffChunkHeader ChunkHeader() const { return chunkHeader; }

@@ -17,6 +17,7 @@
 #ifndef FLAC_FILE_H
 #define FLAC_FILE_H
 
+#include <stdio.h>
 #include <string>
 #include <filesystem>
 #include <memory>
@@ -47,6 +48,8 @@ public:
 
     FlacFormat Format() const { return format; }
 
+    bool IsOpen() const override { return file != nullptr; }
+
     void Open() override;
 
     void Analyze(bool dumpSamples) override;
@@ -67,6 +70,7 @@ protected:
 	void error_callback(::FLAC__StreamDecoderErrorStatus status) override;
 private:
     std::string fileName;
+    std::shared_ptr<FILE> file;
     bool isUpscaled;
     FlacFormat format;
     std::shared_ptr<Logging::Logger> logger;

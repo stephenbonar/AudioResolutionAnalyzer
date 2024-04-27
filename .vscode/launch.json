@@ -17,11 +17,23 @@
             "MIMode": "lldb"
         },
         {
-            "name": "(Windows) Launch",
+            "name": "(Windows) Launch Command Line",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/AudioResolutionAnalyzer/Debug/analyzeaudio.exe",
             "args": ["--24", "Speaks.wav", "Speaks24.wav"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/AudioResolutionAnalyzer/Debug/",
+            "environment": [],
+            "console": "integratedTerminal"
+            //"console": "externalTerminal"
+        },
+        {
+            "name": "(Windows) Launch GUI",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/AudioResolutionAnalyzer/Debug/AudioResolutionAnalyzer.exe",
+            "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build/AudioResolutionAnalyzer/Debug/",
             "environment": [],

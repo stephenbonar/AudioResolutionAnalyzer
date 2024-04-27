@@ -43,6 +43,8 @@ public:
 
     virtual long SampleRate() const = 0;
 
+    virtual bool IsOpen() const = 0;
+
     virtual void Open() = 0;
 
     virtual bool Exists() const { return std::filesystem::exists(FileName()); }

@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <memory>
+#include <filesystem>
 #include <wx/wx.h>
 #include "MediaFile.h"
 

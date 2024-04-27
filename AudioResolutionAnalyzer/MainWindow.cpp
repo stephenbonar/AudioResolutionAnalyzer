@@ -43,6 +43,12 @@ MainWindow::MainWindow(wxString programInfo) :
 {
     this->programInfo = programInfo;
 
+    wxPanel* topPanel = new wxPanel{ this, wxID_ANY, wxDefaultPosition };
+    wxPanel* bottomPanel = new wxPanel{ this, wxID_ANY, wxDefaultPosition };
+
+    wxBoxSizer* frameSizer = new wxBoxSizer{ wxVERTICAL };
+    wxBoxSizer* bottomSizer = new wxBoxSizer{ wxHORIZONTAL };
+
     wxMenu *fileMenu = new wxMenu;
     openMenuItem = new wxMenuItem
     {
@@ -65,40 +71,38 @@ MainWindow::MainWindow(wxString programInfo) :
     CreateStatusBar();
     SetStatusText("Ready");
 
-    fileListView = new wxListView
-    {
-        this, wxID_ANY, wxDefaultPosition, wxSize{600, 400}
-    };
+    fileListView = new wxListView{ topPanel, wxID_ANY, 
+                                   wxDefaultPosition, wxSize{600, 400} };
     fileListView->AppendColumn("File Name", wxLIST_FORMAT_LEFT, 300);
     fileListView->AppendColumn("Bit Depth");
     fileListView->AppendColumn("Sample Rate");
     fileListView->AppendColumn("Is Upscaled");
 
-    analyzeButton = new wxButton{ this, ID::Analyze, "Analyze" };
-    progressBar = new wxGauge{ this, wxID_ANY, 100, wxDefaultPosition, wxSize{ 200, 10 } };
-
-    wxBoxSizer* mainSizer = new wxBoxSizer{ wxVERTICAL };
-    mainSizer->Add(fileListView, 1, wxEXPAND);
-
-    wxBoxSizer* controlPanelSizer = new wxBoxSizer{ wxHORIZONTAL };
-    controlPanelSizer->Add(analyzeButton, 0, wxALL, 10);
-    controlPanelSizer->Add(progressBar, 0, wxCENTER);
-    mainSizer->Add(controlPanelSizer, 0);
+    analyzeButton = new wxButton{ bottomPanel, ID::Analyze, "Analyze" };
+    progressBar = new wxGauge{ bottomPanel, wxID_ANY, 100, 
+                               wxDefaultPosition, wxSize{ 200, 20 } };
+    bottomSizer->Add(analyzeButton, 0, wxALL, 5);
+    bottomSizer->Add(progressBar, 0, wxALL | wxCENTER, 5);
+    bottomPanel->SetSizerAndFit(bottomSizer);
  
+    frameSizer->Add(topPanel, 1, wxEXPAND);
+    frameSizer->Add(bottomPanel, 0, wxEXPAND);
+    SetSizerAndFit(frameSizer);
+
+    logger = std::make_shared<Logging::Logger>();
+    logFile = std::make_shared<Logging::LogFile>();
+    logger->Add(logFile.get());
+
     Bind(wxEVT_MENU, &MainWindow::OnOpen, this, ID::File);
     Bind(wxEVT_MENU, &MainWindow::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_MENU, &MainWindow::OnExit, this, wxID_EXIT);
     Bind(wxEVT_BUTTON, &MainWindow::OnAnalyze, this, ID::Analyze);
-
-    logger = std::make_shared<Logging::Logger>();
-
-    this->SetSizerAndFit(mainSizer);
 }
 
 void MainWindow::OnOpen(wxCommandEvent& event)
 {
     wxFileDialog dialog(this, _("Open media file"), "", "",
-                        "Media files (*.wav)|*.flac", 
+                        "Media files (*.wav;*.flac)|*.wav;*.flac", 
                         wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
 
     if (dialog.ShowModal() == wxID_OK)
@@ -128,6 +132,10 @@ void MainWindow::OnOpen(wxCommandEvent& event)
                 wxMessageBox("Unsupported file type!", "Error", 
                             wxOK | wxICON_ERROR);
             }
+
+            file->Open();
+            if (!file->IsOpen())
+                ShowError("Unable to open file!");
 
             fileList.push_back(file);
         }

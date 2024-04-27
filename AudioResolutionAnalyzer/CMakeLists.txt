@@ -55,8 +55,13 @@ set(GUI_LIBRARIES wx::net wx::core wx::base)
 # Define the console executable target.
 add_executable(analyzeaudio ${COMMON_SOURCES} ${CONSOLE_SOURCES})
 
-# Define the GUI executable target.
-add_executable(AudioResolutionAnalyzer ${COMMON_SOURCES} ${GUI_SOURCES})
+# Define the Windows GUI executable target.
+if(WIN32)
+    add_executable(AudioResolutionAnalyzer WIN32 ${COMMON_SOURCES} ${GUI_SOURCES})
+else()
+    add_executable(AudioResolutionAnalyzer ${COMMON_SOURCES} ${GUI_SOURCES})
+endif(WIN32)
+
 
 # Include all the directories that contain headers that we need that are not
 # in the current directory, otherwise the compiler won't find them

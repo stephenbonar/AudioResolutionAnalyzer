@@ -19,7 +19,7 @@
 #include <vector>
 #include <string>
 #include "LibCppBinary.h"
-#include "CmdLine.h"
+#include "LibCppCmdLine.h"
 
 // Represents the fields that make up the RIFF chunk descriptor in a wave file.
 // This should make up the first 12 bytes of the file.

@@ -31,6 +31,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # such as OGG support and man pages.
 set(WITH_OGG OFF)
 set(INSTALL_MANPAGES OFF)
+set(BUILD_PROGRAMS OFF)
+set(BUILD_EXAMPLES OFF)
+set(BUILD_TESTING OFF)
+
+# By default, GoogleTest expects to statically link to the C++ runtime on the
+# MSVC compiler. So if we run on Windows, we need to set our compiler flags
+# to statically link the rest of the project to the runtime to match.
+if (WIN32)
+    # We need the C compiler flags set to static even if we use the C++
+    # FLAC library because the C++ library is just a wrapper for the C library.
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /MT")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")
+
+    # Also set the C++ flags for static linking with the runtime.
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+endif()
 
 # Add the LibCppBinData library to the project.
 add_subdirectory(libs/LibCppBinary)

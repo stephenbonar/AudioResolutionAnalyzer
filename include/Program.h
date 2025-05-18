@@ -22,7 +22,7 @@
 #include <iomanip>
 #include <sstream>
 #include <memory>
-#include "CmdLine.h"
+#include "LibCppCmdLine.h"
 #include "WaveFile.h"
 #include "BitDepth.h"
 #include "ConversionMethod.h"

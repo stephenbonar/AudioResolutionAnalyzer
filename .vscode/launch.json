@@ -8,10 +8,10 @@
             "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/AudioResolutionAnalyzer/analyzeaudio",
-            "args": ["jump.flac"],
+            "program": "${workspaceFolder}/build/src/analyzeaudio",
+            "args": ["speaks.flac"],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/AudioResolutionAnalyzer/",
+            "cwd": "${workspaceFolder}/build/src/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb"

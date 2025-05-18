@@ -1,6 +1,6 @@
-// SampleDumper.h - Declares the SampleDumper class.
+// AudioResolutionAnalyzer.cpp - Defines the AudioResolutionAnalyzer class.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,27 +14,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SAMPLE_DUMPER_H
-#define SAMPLE_DUMPER_H
+#include "AudioResolutionAnalyzer.h"
 
-#include <string>
-#include <sstream>
-#include <memory>
-#include "Logging.h"
-#include "BinData.h"
-
-class SampleDumper
+bool AudioResolutionAnalyzer::OnInit()
 {
-public:
-    SampleDumper(std::string fileName);
-
-    void Dump(BinData::Field* sample)
-    {
-        dumpLogger->Write(sample->ToString(BinData::Format::Bin));
-    }
-private:
-    std::unique_ptr<Logging::LogFile> dumpFile;
-    std::unique_ptr<Logging::Logger> dumpLogger;
-};
-
-#endif
+    std::stringstream programInfo;
+    programInfo << PROGRAM_NAME << " v" << VERSION_MAJOR << "." 
+                << VERSION_MINOR;
+    MainWindow *window = new MainWindow(wxString{ programInfo.str() });
+    window->Show();
+    return true;
+}

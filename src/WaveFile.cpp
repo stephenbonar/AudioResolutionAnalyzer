@@ -1,6 +1,6 @@
 // WaveFile.cpp - Defines the WaveFile class.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ WaveFile::WaveFile(
     this->fileName = fileName;
     this->logger = logger;
     this->isUpscaled = false;
-    readStream = std::make_shared<BinData::StdFileStream>(fileName);
-    sampleDumper = std::make_shared<SampleDumper>(fileName);
+    readStream = std::make_shared<Binary::RawFileStream>(fileName);
+    //sampleDumper = std::make_shared<SampleDumper>(fileName);
 }
 
 void WaveFile::Open()
@@ -34,23 +34,32 @@ void WaveFile::Open()
 
     if (!readStream->IsOpen())
     {
-        readStream->Open(BinData::FileMode::Read);
+        readStream->Open(Binary::FileMode::Read);
         if (!readStream->IsOpen())
             logger->Write("Unable to open file", Logging::LogLevel::Error);
     }
         
-    chunkHeader = ReadChunkHeader();
+    //chunkHeader = ReadChunkHeader();
+    readStream->Read(&riffChunkHeader);
+    readStream->Read(&riffFileType);
 
     bool dataFound = false;
+
     while (!dataFound)
     {
-        RiffSubChunkHeader subChunkHeader = ReadSubChunkHeader();
+        Binary::ChunkHeader subChunkHeader;
+        //RiffSubChunkHeader subChunkHeader = ReadSubChunkHeader();
+        readStream->Read(&subChunkHeader);
+
         if (subChunkHeader.id.ToString() == "fmt ")
         {
-            formatHeader = subChunkHeader;
+            formatHeader.id.SetValue(subChunkHeader.id.Value());
+            formatHeader.dataSize.SetValue(subChunkHeader.dataSize.Value());
+
             try
             {
-                format = ReadWaveFormat();
+                readStream->Read(&format);
+                //format = ReadWaveFormat();
             }
             catch (const MediaFormatError& error)
             {
@@ -59,18 +68,19 @@ void WaveFile::Open()
         }
         else if (subChunkHeader.id.ToString() == "data")
         {
-            dataHeader = subChunkHeader;
+            dataHeader.id.SetValue(subChunkHeader.id.Value());
+            dataHeader.dataSize.SetValue(subChunkHeader.dataSize.Value());
             dataFound = true;
         }
         else
         {
-            auto subChunkID = std::make_shared<BinData::StringField>(4);
-            auto subChunkSize = std::make_shared<BinData::UInt32Field>(0);
-            auto subChunkData = std::make_shared<BinData::RawField>(
-                subChunkHeader.size.Value());
+            auto subChunkID = std::make_shared<Binary::StringField>(4);
+            auto subChunkSize = std::make_shared<Binary::UInt32Field>(0);
+            auto subChunkData = std::make_shared<Binary::RawField>(
+                subChunkHeader.dataSize.Value());
 
-            subChunkID->SetData(subChunkHeader.id.ToString());
-            subChunkSize->SetValue(subChunkHeader.size.Value());
+            subChunkID->SetValue(subChunkHeader.id.Value());
+            subChunkSize->SetValue(subChunkHeader.dataSize.Value());
             readStream->Read(subChunkData.get());
 
             otherFields.push_back(subChunkID);
@@ -80,6 +90,7 @@ void WaveFile::Open()
     }
 }
 
+/*
 RiffChunkHeader WaveFile::ReadChunkHeader()
 {
     RiffChunkHeader header;
@@ -96,6 +107,7 @@ RiffSubChunkHeader WaveFile::ReadSubChunkHeader()
     readStream->Read(&header.size);
     return header;
 }
+*/
 
 WaveFormat WaveFile::ReadWaveFormat()
 {
@@ -118,7 +130,7 @@ WaveFormat WaveFile::ReadWaveFormat()
 
 void WaveFile::Analyze(bool dumpSamples)
 {
-    unsigned long bytesRemaining = dataHeader.size.Value();
+    unsigned long bytesRemaining = dataHeader.dataSize.Value();
 
     // Start by assuming the file is an upscale conversion; the analysis will
     // disprove it if it finds any non-zero least significant bytes.
@@ -148,16 +160,16 @@ void WaveFile::Analyze(bool dumpSamples)
         switch (format.bitsPerSample.Value())
         {
             case 8:
-                AnalyzeNextSample<BinData::UInt8Field>(dumpSamples);
+                AnalyzeNextSample<Binary::UInt8Field>(dumpSamples);
                 break;
             case 16:
-                AnalyzeNextSample<BinData::Int16Field>(dumpSamples);
+                AnalyzeNextSample<Binary::Int16Field>(dumpSamples);
                 break;
             case 24:
-                AnalyzeNextSample<BinData::Int24Field>(dumpSamples);
+                AnalyzeNextSample<Binary::Int24Field>(dumpSamples);
                 break;
             case 32:
-                AnalyzeNextSample<BinData::Int32Field>(dumpSamples);
+                AnalyzeNextSample<Binary::Int32Field>(dumpSamples);
                 break;
         }
         
@@ -171,20 +183,34 @@ void WaveFile::Convert(
     ConversionMethod method)
 {
     // Open the file stream for writing so we can write the converted data. 
-    writeStream = std::make_shared<BinData::StdFileStream>(outputFileName);
+    writeStream = std::make_shared<Binary::RawFileStream>(outputFileName);
     if (!writeStream->IsOpen())
-        writeStream->Open(BinData::FileMode::Write);
+        writeStream->Open(Binary::FileMode::Write);
 
     // Calculate how the file will change after the conversion so we can set
     // the headers of the converted file to the appropriate values.
     long numberOfSamples = CalculateNumberOfSamples();
     long newDataSize = CalculateNewDataSize(depth, numberOfSamples);
-    long sizeChange = newDataSize - dataHeader.size.Value();
+    long sizeChange = newDataSize - dataHeader.dataSize.Value();
 
     // Write the modified headers to the converted file to reflect the changes.
+    /*
     WriteChunkHeader(GetNewChunkHeader(sizeChange));
     WriteSubChunkHeader(formatHeader);
     WriteFormatInfo(GetNewWaveFormat(depth));
+    */
+    Binary::ChunkHeader newChunkHeader;
+    newChunkHeader.id.SetValue(riffChunkHeader.id.Value());
+    newChunkHeader.dataSize.SetValue(riffChunkHeader.dataSize.Value() + sizeChange);
+    Binary::ChunkHeader formatSubChunk;
+    formatSubChunk.id.SetValue("fmt ");
+    formatSubChunk.dataSize.SetValue(16);
+    WaveFormat newFormat = GetNewWaveFormat(depth);
+    writeStream->Write(&newChunkHeader);
+    writeStream->Write(&riffFileType);
+    writeStream->Write(&formatSubChunk);
+    writeStream->Write(&newFormat);
+
 
     // Writes the additional subchunk fields that this program is not concerned
     // about. This is things like the fields for the info subchunk. It copies 
@@ -194,14 +220,15 @@ void WaveFile::Convert(
 
     // After writing all the other subchunk fields, the data subchunk should be
     // written last. 
-    RiffSubChunkHeader newDataHeader;
-    newDataHeader.id = dataHeader.id;
-    newDataHeader.size = newDataSize;
-    WriteSubChunkHeader(newDataHeader);
+    Binary::ChunkHeader newDataHeader;
+    newDataHeader.id.SetValue(dataHeader.id.Value());
+    newDataHeader.dataSize.SetValue(newDataSize);
+    //WriteSubChunkHeader(newDataHeader);
+    writeStream->Write(&newDataHeader);
 
     // We determine the number of bytes remaining in the existing file so we 
     // don't read past the end of the file.
-    long bytesRemaining = dataHeader.size.Value();
+    long bytesRemaining = dataHeader.dataSize.Value();
 
     // We need to know bytes per sample so we can see how many bytes are
     // remaining after we convert each sample.
@@ -212,19 +239,20 @@ void WaveFile::Convert(
     while (bytesRemaining > 0)
     {
         bool success = false;
+
         switch (format.bitsPerSample.Value())
         {
             case 8:
-                success = ConvertNext<BinData::UInt8Field>(method, depth);
+                success = ConvertNext<Binary::UInt8Field>(method, depth);
                 break;
             case 16:
-                success = ConvertNext<BinData::Int16Field>(method, depth);
+                success = ConvertNext<Binary::Int16Field>(method, depth);
                 break;
             case 24:
-                success = ConvertNext<BinData::Int24Field>(method, depth);
+                success = ConvertNext<Binary::Int24Field>(method, depth);
                 break;
             case 32:
-                success = ConvertNext<BinData::Int32Field>(method, depth);
+                success = ConvertNext<Binary::Int32Field>(method, depth);
                 break;
         }
 
@@ -239,7 +267,7 @@ long WaveFile::CalculateNumberOfSamples()
 {
     constexpr int bitsPerByte{ 8 };
     int bytesPerSample = format.bitsPerSample.Value() / bitsPerByte;
-    return dataHeader.size.Value() / bytesPerSample;
+    return dataHeader.dataSize.Value() / bytesPerSample;
 }
 
 long WaveFile::CalculateNewDataSize(BitDepth depth, long numberOfSamples)
@@ -259,6 +287,7 @@ long WaveFile::CalculateNewDataSize(BitDepth depth, long numberOfSamples)
     }
 }
 
+/*
 void WaveFile::WriteChunkHeader(RiffChunkHeader header)
 {
     writeStream->Write(&header.id);
@@ -271,7 +300,9 @@ void WaveFile::WriteSubChunkHeader(RiffSubChunkHeader header)
     writeStream->Write(&header.id);
     writeStream->Write(&header.size);
 }
+*/
 
+/*
 void WaveFile::WriteFormatInfo(WaveFormat format)
 {
     writeStream->Write(&format.audioFormat);
@@ -280,8 +311,9 @@ void WaveFile::WriteFormatInfo(WaveFormat format)
     writeStream->Write(&format.byteRate);
     writeStream->Write(&format.blockAlign);
     writeStream->Write(&format.bitsPerSample);
-}
+}*/
 
+/*
 RiffChunkHeader WaveFile::GetNewChunkHeader(long sizeIncrease)
 {
     RiffChunkHeader newChunkHeader;
@@ -290,6 +322,7 @@ RiffChunkHeader WaveFile::GetNewChunkHeader(long sizeIncrease)
     newChunkHeader.type = chunkHeader.type;
     return newChunkHeader;
 }
+*/
 
 WaveFormat WaveFile::GetNewWaveFormat(BitDepth depth)
 {
@@ -298,12 +331,12 @@ WaveFormat WaveFile::GetNewWaveFormat(BitDepth depth)
     // Copy the existing format info into the new format info so the new
     // info starts with the same data as the original.
     WaveFormat newFormat;
-    newFormat.audioFormat = format.audioFormat;
-    newFormat.channels = format.channels;
-    newFormat.sampleRate = format.sampleRate;
-    newFormat.blockAlign = format.blockAlign;
-    newFormat.byteRate = format.byteRate;
-    newFormat.bitsPerSample = format.bitsPerSample;
+    newFormat.audioFormat.SetValue(format.audioFormat.Value());
+    newFormat.channels.SetValue(format.channels.Value());
+    newFormat.sampleRate.SetValue(format.sampleRate.Value());
+    newFormat.blockAlign.SetValue(format.blockAlign.Value());
+    newFormat.byteRate.SetValue(format.byteRate.Value());
+    newFormat.bitsPerSample.SetValue(format.bitsPerSample.Value());
 
     // Determine the number of bits-per-sample for the specified conversion
     // as it is an important input to the calucations for the new info.
@@ -323,13 +356,13 @@ WaveFormat WaveFile::GetNewWaveFormat(BitDepth depth)
 
     // Block align tells us how many bytes there are in a sample frame, which
     // inludes the sample values for each channel.
-    newFormat.blockAlign = bytesPerSample * format.channels.Value();
+    newFormat.blockAlign.SetValue(bytesPerSample * format.channels.Value());
 
     // Byte rate is the number of bytes per second give the sample rate.
-    newFormat.byteRate = newFormat.blockAlign.Value() 
-        * newFormat.sampleRate.Value();
+    newFormat.byteRate.SetValue(newFormat.blockAlign.Value() 
+        * newFormat.sampleRate.Value());
 
-    newFormat.bitsPerSample = bitsPerSample;
+    newFormat.bitsPerSample.SetValue(bitsPerSample);
 
     return newFormat;
 }

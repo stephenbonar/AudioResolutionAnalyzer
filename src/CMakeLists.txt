@@ -1,6 +1,6 @@
 # CMakeLists.txt - CMakeLists for building the main program.
 #
-# Copyright (C) 2024 Stephen Bonar
+# Copyright (C) 2025 Stephen Bonar
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,18 +16,20 @@
 
 # Define the directories that contain the header files the programs include.
 set(INCLUDES 
-    ${PROJECT_SOURCE_DIR}/LibCppBinData/LibCppBinData
-    ${PROJECT_SOURCE_DIR}/LibCppCmdLine/LibCppCmdLine
-    ${PROJECT_SOURCE_DIR}/LibCppLogging/LibCppLogging
-    ${PROJECT_SOURCE_DIR}/flac/include/FLAC
-    ${PROJECT_SOURCE_DIR}/flac/include/FLAC++
-    ${PROJECT_BINARY_DIR}/AudioResolutionAnalyzer)
+    ${PROJECT_SOURCE_DIR}/libs/LibCppBinary/include
+    ${PROJECT_SOURCE_DIR}/libs/LibCppCmdLine/include
+    ${PROJECT_SOURCE_DIR}/libs/LibCppLogging/LibCppLogging
+    ${PROJECT_SOURCE_DIR}/libs/flac/include/FLAC
+    ${PROJECT_SOURCE_DIR}/libs/flac/include/FLAC++
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/src)
 
 # Define the source files that make up the main program.
 set(COMMON_SOURCES
     WaveFile.cpp
     FlacFile.cpp
-    SampleDumper.cpp)
+    SampleDumper.cpp
+    WaveFormat.cpp)
 
 # Define the source files that make up the console program.
 set(CONSOLE_SOURCES
@@ -47,7 +49,7 @@ set(GUI_SOURCES
 configure_file(Version.h.in Version.h)
 
 # Define the common libraries the the executables need to link with.
-set(COMMON_LIBRARIES LibCppBinData LibCppCmdLine LibCppLogging FLAC++)
+set(COMMON_LIBRARIES LibCppBinary LibCppCmdLine LibCppLogging FLAC++)
 
 # Define the additional libraries the GUI needs to link with. 
 set(GUI_LIBRARIES wx::net wx::core wx::base)

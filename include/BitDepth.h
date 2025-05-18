@@ -1,6 +1,6 @@
-// RiffSubChunkHeader.h - Declares the RiffSubChunkHeader struct.
+// BitDepth.h - Defines the BitDepth enum.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
 // See the License for the specific language governing permissionsand
 // limitations under the License.
 
-#ifndef RIFF_SUB_CHUNK_HEADER_H
-#define RIFF_SUB_CHUNK_HEADER_H
+#ifndef BIT_DEPTH_H
+#define BIT_DEPTH_H
 
-#include "BinData.h"
-
-struct RiffSubChunkHeader
+/// @brief Represents all the possible bit depths for digital audio.
+enum BitDepth
 {
-    // Common values include 'fmt ', 'info', and 'data'.
-    BinData::StringField id{ 4 };
-
-    // Indicates the size of the rest of the subchunk after this header.
-    BinData::UInt32Field size{ 0 };
+    UInt8,
+    Int16,
+    Int24,
+    Int32
 };
 
 #endif

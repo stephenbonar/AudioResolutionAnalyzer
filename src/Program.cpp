@@ -1,6 +1,6 @@
 // Program.cpp - Defines the Program class methods and functions.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ Program::Program(int argc, char** argv)
 
     standardOutput = std::make_shared<Logging::StandardOutput>();
     standardError = std::make_shared<Logging::StandardError>();
-    logFile = std::make_shared<Logging::LogFile>();
+
+    //logFile = std::make_shared<Logging::LogFile>();
 
     // Standard output and error are included in the logger by default, but
     // the log file will only be included later if the -l option is specified.
@@ -44,6 +45,7 @@ int Program::Run()
 
     if (logOption->IsSpecified())
     {
+        logFile = std::make_shared<Logging::LogFile>();
         logger->Add(logFile.get());
     }
 
@@ -288,11 +290,11 @@ int Program::PrintMediaInfo(MediaFile* file)
 
 int Program::PrintWaveInfo(WaveFile* file)
 {
-    RiffChunkHeader header = file->ChunkHeader();
+    Binary::ChunkHeader header = file->RiffChunkHeader();
     PrintSectionHeader("RIFF Chunk Header");
     PrintField("Chunk ID", header.id.ToString());
-    PrintField("Chunk Size", header.size.ToString());
-    PrintField("File Type", header.type.ToString());
+    PrintField("Chunk Size", header.dataSize.ToString());
+    PrintField("File Type", file->RiffFileType().ToString());
     logger->Write("");
 
     WaveFormat format = file->Format();

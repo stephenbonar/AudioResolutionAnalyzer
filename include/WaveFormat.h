@@ -1,6 +1,6 @@
 // WaveFormat.h - Declares the WaveFormat struct.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,16 +17,25 @@
 #ifndef WAVE_FORMAT_H
 #define WAVE_FORMAT_H
 
-#include "BinData.h"
+#include <vector>
+#include "LibCppBinary.h"
 
-struct WaveFormat
+struct WaveFormat : public Binary::DataStructure
 {
-    BinData::UInt16Field audioFormat{ 0 };
-    BinData::UInt16Field channels{ 0 };
-    BinData::UInt32Field sampleRate{ 0 };
-    BinData::UInt32Field byteRate{ 0 };
-    BinData::UInt16Field blockAlign{ 0 };
-    BinData::UInt16Field bitsPerSample{ 0 };
+    Binary::UInt16Field audioFormat{ 0 };
+    Binary::UInt16Field channels{ 0 };
+    Binary::UInt32Field sampleRate{ 0 };
+    Binary::UInt32Field byteRate{ 0 };
+    Binary::UInt16Field blockAlign{ 0 };
+    Binary::UInt16Field bitsPerSample{ 0 };
+
+    WaveFormat();
+
+    std::vector<Binary::DataField*> Fields() override { return fields; }
+
+    size_t Size() const override;
+private:
+    std::vector<Binary::DataField*> fields;
 };
 
 #endif

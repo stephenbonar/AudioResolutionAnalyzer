@@ -1,6 +1,6 @@
-// FlacFormat.h - Declares the FlacFormat struct.
+// AudioResolutionAnalyzer.h - Declares the AudioResolutionAnalyzer class.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FLAC_FORMAT_H
-#define FLAC_FORMAT_H
+#ifndef AUDIO_RESOLUTION_ANALYZER_H
+#define AUDIO_RESOLUTION_ANALYZER_H
 
-#include "FLAC++/decoder.h"
+#include <sstream>
+#include <wx/wx.h>
+#include "MainWindow.h"
+#include "Version.h"
 
-struct FlacFormat
+class AudioResolutionAnalyzer : public wxApp
 {
-    FLAC__uint64 totalSamples = 0;
-    uint32_t sampleRate = 0;
-    uint32_t channels = 0;
-    uint32_t bitsPerSample = 0;
-    uint32_t blockSize = 0;
+public:
+    bool OnInit() override;
 };
 
 #endif

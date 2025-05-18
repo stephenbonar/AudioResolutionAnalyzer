@@ -1,6 +1,6 @@
 // WaveFile.h - Declares the WaveFile class.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,15 +22,13 @@
 #include <iostream>
 #include <memory>
 #include <filesystem>
-#include "BinData.h"
-#include "RiffChunkHeader.h"
-#include "RiffSubChunkHeader.h"
+#include "LibCppBinary.h"
 #include "WaveFormat.h"
 #include "BitDepth.h"
 #include "ConversionMethod.h"
 #include "SampleConverter.h"
 #include "MediaFile.h"
-#include "Logging.h"
+#include "LibCppLogging.h"
 #include "SampleDumper.h"
 
 class WaveFile : public MediaFile
@@ -49,7 +47,9 @@ public:
 
     void Open() override;
 
-    RiffChunkHeader ChunkHeader() const { return chunkHeader; }
+    Binary::ChunkHeader RiffChunkHeader() const { return riffChunkHeader; }
+
+    Binary::StringField RiffFileType() const { return riffFileType; }
 
     WaveFormat Format() const { return format; }
 
@@ -66,25 +66,30 @@ public:
 private:
     bool isUpscaled;
     std::string fileName;
-    RiffChunkHeader chunkHeader;
-    RiffSubChunkHeader formatHeader;
-    RiffSubChunkHeader dataHeader;
+    Binary::ChunkHeader riffChunkHeader;
+    Binary::StringField riffFileType{ 4 };
+    Binary::ChunkHeader formatHeader;
+    Binary::ChunkHeader dataHeader;
     WaveFormat format;
-    std::vector<std::shared_ptr<BinData::Field>> otherFields;
-    std::shared_ptr<BinData::StdFileStream> readStream;
-    std::shared_ptr<BinData::StdFileStream> writeStream;
+    std::vector<std::shared_ptr<Binary::DataField>> otherFields;
+    std::shared_ptr<Binary::RawFileStream> readStream;
+    std::shared_ptr<Binary::RawFileStream> writeStream;
     std::shared_ptr<Logging::Logger> logger;
     std::shared_ptr<SampleDumper> sampleDumper;
 
+    /*
     RiffChunkHeader ReadChunkHeader();
 
     RiffSubChunkHeader ReadSubChunkHeader();
+    */
 
     WaveFormat ReadWaveFormat();
 
+    /*
     void WriteChunkHeader(RiffChunkHeader header);
 
     void WriteSubChunkHeader(RiffSubChunkHeader header);
+    */
 
     void WriteFormatInfo(WaveFormat format);
 
@@ -94,7 +99,7 @@ private:
         T sample { 0 };
         readStream->Read(&sample);
         auto converter = SampleConverter<T>(method, depth);
-        std::shared_ptr<BinData::Field> newSample = converter.Convert(sample);
+        std::shared_ptr<Binary::DataField> newSample = converter.Convert(sample);
 
         if (newSample != nullptr)
         {
@@ -107,7 +112,7 @@ private:
         }
     }
 
-    RiffChunkHeader GetNewChunkHeader(long sizeIncrease);
+    //RiffChunkHeader GetNewChunkHeader(long sizeIncrease);
 
     WaveFormat GetNewWaveFormat(BitDepth depth);
 
@@ -123,6 +128,9 @@ private:
 
         if (dumpSamples)
         {
+            if (sampleDumper == nullptr)
+                sampleDumper = std::make_shared<SampleDumper>(fileName);
+
             sampleDumper->Dump(&sample);
         }
         

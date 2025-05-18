@@ -1,15 +1,15 @@
-[submodule "LibCppCmdLine"]
-	path = LibCppCmdLine
+[submodule "libs/LibCppBinary"]
+	path = libs/LibCppBinary
+	url = https://github.com/stephenbonar/LibCppBinary
+[submodule "libs/LibCppCmdLine"]
+	path = libs/LibCppCmdLine
 	url = https://github.com/stephenbonar/LibCppCmdLine
-[submodule "LibCppBinData"]
-	path = LibCppBinData
-	url = https://github.com/stephenbonar/LibCppBinData
-[submodule "flac"]
-	path = flac
+[submodule "libs/flac"]
+	path = libs/flac
 	url = https://github.com/xiph/flac
-[submodule "LibCppLogging"]
-	path = LibCppLogging
-	url = https://github.com/stephenbonar/LibCppLogging
-[submodule "wxWidgets"]
-	path = wxWidgets
+[submodule "libs/wxWidgets"]
+	path = libs/wxWidgets
 	url = https://github.com/wxWidgets/wxWidgets
+[submodule "libs/LibCppLogging"]
+	path = libs/LibCppLogging
+	url = https://github.com/stephenbonar/LibCppLogging

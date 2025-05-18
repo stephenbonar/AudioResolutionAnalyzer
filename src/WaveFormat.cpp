@@ -1,6 +1,6 @@
-// AudioResolutionAnalyzer.cpp - Defines the AudioResolutionAnalyzer class.
+// WaveFormat.cpp - Defines the WaveFormat struct.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,14 +14,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "AudioResolutionAnalyzer.h"
+#include "WaveFormat.h"
 
-bool AudioResolutionAnalyzer::OnInit()
+WaveFormat::WaveFormat()
 {
-    std::stringstream programInfo;
-    programInfo << PROGRAM_NAME << " v" << VERSION_MAJOR << "." 
-                << VERSION_MINOR;
-    MainWindow *window = new MainWindow(wxString{ programInfo.str() });
-    window->Show();
-    return true;
+    fields.push_back(&audioFormat);
+    fields.push_back(&channels);
+    fields.push_back(&sampleRate);
+    fields.push_back(&byteRate);
+    fields.push_back(&blockAlign);
+    fields.push_back(&bitsPerSample);
+}
+
+size_t WaveFormat::Size() const
+{
+    size_t size;
+
+    for (size_t i = 0; i < fields.size(); i++)
+        size += fields[i]->Size();
+
+    return size;
 }

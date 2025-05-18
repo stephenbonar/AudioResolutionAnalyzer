@@ -1,6 +1,6 @@
-// RiffChunkHeader.h - Declares the RiffChunkHeader struct.
+// Version.h - Defines the AudioResolutionAnalyzer version.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,21 +14,10 @@
 // See the License for the specific language governing permissionsand
 // limitations under the License.
 
-#ifndef RIFF_CHUNK_HEADER_H
-#define RIFF_CHUNK_HEADER_H
+#define PROGRAM_NAME "@CMAKE_PROJECT_NAME@"
+#define PROGRAM_COPYRIGHT "@PROJECT_COPYRIGHT@"
+#define PROGRAM_RELEASE "@PROJECT_RELEASE@"
+#define PROGRAM_BUILD_TYPE "@CMAKE_BUILD_TYPE@"
 
-#include "BinData.h"
-
-struct RiffChunkHeader
-{
-    // Should be set to the characters 'RIFF' in a valid wave file.
-    BinData::StringField id{ 4 };
-
-    // The size of the rest of the file - 8 bytes (the id and size).
-    BinData::UInt32Field size{ 0 };
-
-    // Should be set to the characters 'WAVE' in a valid wave file.
-    BinData::StringField type{ 4 };
-};
-
-#endif
+#define VERSION_MAJOR @AudioResolutionAnalyzer_VERSION_MAJOR@
+#define VERSION_MINOR @AudioResolutionAnalyzer_VERSION_MINOR@

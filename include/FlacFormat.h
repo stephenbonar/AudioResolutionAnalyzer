@@ -1,6 +1,6 @@
-// MediaFileType.h - Declares the MediaFileType enum.
+// FlacFormat.h - Declares the FlacFormat struct.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,17 +11,21 @@
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissionsand
+// See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef MEDIA_FILE_TYPE_H
-#define MEDIA_FILE_TYPE_H
+#ifndef FLAC_FORMAT_H
+#define FLAC_FORMAT_H
 
-enum MediaFileType
+#include "FLAC++/decoder.h"
+
+struct FlacFormat
 {
-    Wave,
-    Flac,
-    Unsupported
+    FLAC__uint64 totalSamples = 0;
+    uint32_t sampleRate = 0;
+    uint32_t channels = 0;
+    uint32_t bitsPerSample = 0;
+    uint32_t blockSize = 0;
 };
 
 #endif

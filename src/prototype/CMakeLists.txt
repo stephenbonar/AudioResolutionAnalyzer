@@ -1,6 +1,6 @@
 # CMakeLists.txt - CMakeLists for building the prototype program.
 #
-# Copyright (C) 2024 Stephen Bonar
+# Copyright (C) 2025 Stephen Bonar
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 # Define the directories that contain the header files the tests include.
 set(INCLUDES 
-    ${PROJECT_SOURCE_DIR}/LibCppBinData/LibCppBinData
-    ${PROJECT_SOURCE_DIR}/LibCppCmdLine/LibCppCmdLine)
+    ${PROJECT_SOURCE_DIR}/libs/LibCppBinary/include
+    ${PROJECT_SOURCE_DIR}/libs/LibCppCmdLine/include)
 
 # Define the libraries the tests need to link against.
-set(LIBRARIES LibCppBinData LibCppCmdLine)
+set(LIBRARIES LibCppBinary LibCppCmdLine)
 
 # Define the executable targets.
 add_executable(analyzeaudioproto Prototype.cpp)

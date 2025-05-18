@@ -1,6 +1,6 @@
 # CMakeLists.txt - CMakeLists for building the project.
 #
-# Copyright (C) 2024 Stephen Bonar
+# Copyright (C) 2025 Stephen Bonar
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.12)
-project(AudioResolutionAnalyzer VERSION 0.73.0 LANGUAGES CXX)
+project(AudioResolutionAnalyzer VERSION 0.75.0 LANGUAGES CXX)
 
 # Although the project command can natively pass the name and version into
 # the program through the configure_file command, there is no native RELEASE
 # or COPYRIGHT info, so we define that here to pass to configure_file.
 set(PROJECT_RELEASE "Alpha")
-set(PROJECT_COPYRIGHT "Copyright (C) 2024 Stephen Bonar")
+set(PROJECT_COPYRIGHT "Copyright (C) 2025 Stephen Bonar")
 
 # Specify the C++ standard.
 set(CMAKE_CXX_STANDARD 17)
@@ -33,22 +33,22 @@ set(WITH_OGG OFF)
 set(INSTALL_MANPAGES OFF)
 
 # Add the LibCppBinData library to the project.
-add_subdirectory(LibCppBinData)
+add_subdirectory(libs/LibCppBinary)
 
 # Add the LibCppCmdLine library to the project.
-add_subdirectory(LibCppCmdLine)
+add_subdirectory(libs/LibCppCmdLine)
 
 # Add the LibCppLogging library to the project.
-add_subdirectory(LibCppLogging)
-
-# Add the AudioResolutionAnalyzer program to the project.
-add_subdirectory(AudioResolutionAnalyzer)
-
-# Add the prototype version of AudioResolutionAnalyzer to the project.
-add_subdirectory(Prototype)
+add_subdirectory(libs/LibCppLogging)
 
 # Add the FLAC library to the project.
-add_subdirectory(flac)
+add_subdirectory(libs/flac)
 
 # Add wxWidgets to the project.
-add_subdirectory(wxWidgets)
+add_subdirectory(libs/wxWidgets)
+
+# Add the AudioResolutionAnalyzer program to the project.
+add_subdirectory(src)
+
+# Add the prototype version of AudioResolutionAnalyzer to the project.
+add_subdirectory(src/prototype)

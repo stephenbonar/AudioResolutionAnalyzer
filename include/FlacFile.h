@@ -1,6 +1,6 @@
 // FlacFile.h - Declares the FlacFile class.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
 #include <filesystem>
 #include <memory>
 #include <sstream>
-#include "BinData.h"
-#include "Logging.h"
+#include "LibCppBinary.h"
+#include "LibCppLogging.h"
 #include "MediaFile.h"
 #include "SampleDumper.h"
 #include "FLAC++/decoder.h"
@@ -36,9 +36,10 @@ public:
         FLAC::Decoder::File(),
         fileName{ fileName }, 
         isUpscaled{ false },
-        logger{ logger },
-        dumper{ std::make_shared<SampleDumper>(fileName) } 
+        logger{ logger }
         {}
+
+    ~FlacFile();
 
     std::string FileName() const override { return fileName; }
 
@@ -70,7 +71,7 @@ protected:
 	void error_callback(::FLAC__StreamDecoderErrorStatus status) override;
 private:
     std::string fileName;
-    std::shared_ptr<FILE> file;
+    FILE* file;
     bool isUpscaled;
     FlacFormat format;
     std::shared_ptr<Logging::Logger> logger;
@@ -85,6 +86,9 @@ private:
 
         if (dumpSamples)
         {
+            if (dumper == nullptr)
+                dumper = std::make_shared<SampleDumper>(fileName);
+
             dumper->Dump(&sample);
         }
 

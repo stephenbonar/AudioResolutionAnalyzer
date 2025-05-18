@@ -1,6 +1,6 @@
-// Version.h - Defines the AudioResolutionAnalyzer version.
+// ConsoleMain.h - The main application entry point for the console version.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,13 +11,13 @@
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissionsand
+// See the License for the specific language governing permissions and
 // limitations under the License.
 
-#define PROGRAM_NAME "@CMAKE_PROJECT_NAME@"
-#define PROGRAM_COPYRIGHT "@PROJECT_COPYRIGHT@"
-#define PROGRAM_RELEASE "@PROJECT_RELEASE@"
-#define PROGRAM_BUILD_TYPE "@CMAKE_BUILD_TYPE@"
+#include "Program.h"
 
-#define VERSION_MAJOR @AudioResolutionAnalyzer_VERSION_MAJOR@
-#define VERSION_MINOR @AudioResolutionAnalyzer_VERSION_MINOR@
+int main(int argc, char** argv)
+{
+    Program program{ argc, argv };
+    return program.Run();
+}

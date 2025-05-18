@@ -1,3 +1,19 @@
+// SampleConverter.h - Declares the SampleConverter class.
+//
+// Copyright (C) 2025 Stephen Bonar
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http ://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef SAMPLE_CONVERTER_H
 #define SAMPLE_CONVERTER_H
 
@@ -15,7 +31,7 @@ public:
         this->newFormat = newFormat;
     }
 
-    std::shared_ptr<BinData::Field> Convert(T& sample)
+    std::shared_ptr<Binary::DataField> Convert(T& sample)
     {
         switch (method)
         {
@@ -31,25 +47,25 @@ private:
     ConversionMethod method;
     BitDepth newFormat;
 
-    std::shared_ptr<BinData::Field> ConvertDirectCopy(T& sample)
+    std::shared_ptr<Binary::DataField> ConvertDirectCopy(T& sample)
     {
         switch (newFormat)
         {
             case BitDepth::UInt8:
-                return DirectCopyTo<BinData::UInt8Field>(sample);
+                return DirectCopyTo<Binary::UInt8Field>(sample);
             case BitDepth::Int16:
-                return DirectCopyTo<BinData::Int16Field>(sample);
+                return DirectCopyTo<Binary::Int16Field>(sample);
             case BitDepth::Int24:
-                return DirectCopyTo<BinData::Int24Field>(sample);
+                return DirectCopyTo<Binary::Int24Field>(sample);
             case BitDepth::Int32:
-                return DirectCopyTo<BinData::Int32Field>(sample);
+                return DirectCopyTo<Binary::Int32Field>(sample);
             default:
                 return nullptr;
         }
     }
 
     template <typename U>
-    std::shared_ptr<BinData::Field> DirectCopyTo(T& sample)
+    std::shared_ptr<Binary::DataField> DirectCopyTo(T& sample)
     {
         auto newSample = std::make_shared<U>(0);
         if (newSample->Size() < sample.Size())
@@ -63,25 +79,25 @@ private:
         return newSample;
     }
 
-    std::shared_ptr<BinData::Field> ConvertLinearScaling(T& sample)
+    std::shared_ptr<Binary::DataField> ConvertLinearScaling(T& sample)
     {
         switch (newFormat)
         {
             case BitDepth::UInt8:
-                return LinearScaleTo<BinData::UInt8Field>(sample);
+                return LinearScaleTo<Binary::UInt8Field>(sample);
             case BitDepth::Int16:
-                return LinearScaleTo<BinData::Int16Field>(sample);
+                return LinearScaleTo<Binary::Int16Field>(sample);
             case BitDepth::Int24:
-                return LinearScaleTo<BinData::Int24Field>(sample);
+                return LinearScaleTo<Binary::Int24Field>(sample);
             case BitDepth::Int32:
-                return LinearScaleTo<BinData::Int32Field>(sample);
+                return LinearScaleTo<Binary::Int32Field>(sample);
             default:
                 return nullptr;
         }
     }
 
     template <typename U>
-    std::shared_ptr<BinData::Field> LinearScaleTo(T& sample)
+    std::shared_ptr<Binary::DataField> LinearScaleTo(T& sample)
     {
         // Allocate a dummy sample so we can check the field size of the new
         // sample field type vs the original. TODO: see if we can do this
@@ -106,7 +122,7 @@ private:
     }
     
     template <typename U>
-    std::shared_ptr<BinData::Field> LinearUpscaleTo(T& sample)
+    std::shared_ptr<Binary::DataField> LinearUpscaleTo(T& sample)
     {
         // Initialize a sample field with the new field type to store the
         // upscaled sample in. 
@@ -156,7 +172,7 @@ private:
     }
 
     template <typename U>
-    std::shared_ptr<BinData::Field> LinearDownscaleTo(T& sample)
+    std::shared_ptr<Binary::DataField> LinearDownscaleTo(T& sample)
     {
         // Initialize a sample field with the new field type to store the
         // downscaled sample in. 

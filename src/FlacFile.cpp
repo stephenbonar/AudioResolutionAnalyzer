@@ -1,6 +1,6 @@
 // FlacFile.cpp - Defines the FlacFile class methods.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,9 +16,15 @@
 
 #include "FlacFile.h"
 
+FlacFile::~FlacFile()
+{
+    if (file != nullptr)
+        fclose(file);
+}
+
 void FlacFile::Open()
 {
-    file = std::shared_ptr<FILE>(fopen(fileName.c_str(), "rb"));
+    file = fopen(fileName.c_str(), "rb");
 }
 
 void FlacFile::Analyze(bool dumpSamples)
@@ -31,7 +37,7 @@ void FlacFile::Analyze(bool dumpSamples)
 
     // Calls the init method from FLAC::Decoder::File, which opens the file
     // for reading and decoding.
-    FLAC__StreamDecoderInitStatus initStatus = init(file.get());
+    FLAC__StreamDecoderInitStatus initStatus = init(file);
 
     if (initStatus == FLAC__STREAM_DECODER_INIT_STATUS_OK) 
     {
@@ -95,22 +101,22 @@ void FlacFile::Convert(
         {
             if (format.bitsPerSample == 32)
             {
-                ProcessNext<BinData::Int32Field>(
+                ProcessNext<Binary::Int32Field>(
                     buffer[channelIndex][frameIndex]);
             }
             else if (format.bitsPerSample == 24)
             {
-                ProcessNext<BinData::Int24Field>(
+                ProcessNext<Binary::Int24Field>(
                     buffer[channelIndex][frameIndex]);
             }
             else if (format.bitsPerSample == 16)
             {
-                ProcessNext<BinData::Int16Field>(
+                ProcessNext<Binary::Int16Field>(
                     buffer[channelIndex][frameIndex]);
             }
             else if (format.bitsPerSample == 8)
             {
-                ProcessNext<BinData::UInt8Field>(
+                ProcessNext<Binary::UInt8Field>(
                     buffer[channelIndex][frameIndex]);
             }
         }

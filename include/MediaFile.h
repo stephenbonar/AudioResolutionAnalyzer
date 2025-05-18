@@ -1,6 +1,6 @@
 // MediaFile.h - Declares the MediaFile base class.
 //
-// Copyright (C) 2024 Stephen Bonar
+// Copyright (C) 2025 Stephen Bonar
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 #include "BitDepth.h"
 #include "ConversionMethod.h"
 #include "MediaFileType.h"
-#include "Logging.h"
+#include "LibCppLogging.h"
 
 class MediaFormatError : public std::runtime_error
 {
